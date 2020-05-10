@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- bit.com.a.dao.BbsDao -->
+<mapper namespace="bit.com.a.search.SearchDao">
+
+  <select id="getDong" resultType="bit.com.a.dummyData.DongDto">
+  <!--
+    select * from DONG where 
+    latitude > #{swLat} 
+    AND #{neLat} > latitude
+    AND longitude > #{swLng} 
+    AND #{neLng} > longitude 
+  -->
+    select DONG.id, DONG.name, DONG.latitude, DONG.longitude, DONG.GU_id, c.count as count
+    from DONG , (select DONGTemp.id as TEMPID, count(ROOM.DONG_id) as count
+          FROM DONG as DONGTemp
+          left JOIN (
+                    select * from ROOM
+                    where del = 0
+                    <if test="(RoomOption1 != null and RoomOption1 != '') or (RoomOption2 != null and RoomOption2 != '') or (RoomOption3 != null and RoomOption3 != '')">
+                      AND (1 = 0
+                        <if test="(RoomOption1 == 'officetel') or (RoomOption2 == 'officetel') or (RoomOption3 == 'officetel')">
+                          OR room_type = 'studio'
+                        </if>
+                        <if test="(RoomOption1 == 'one') or (RoomOption2 == 'one') or (RoomOption3 == 'one')">
+                          OR room_count = 'one'
+                        </if>
+                        <if test="(RoomOption1 == 'twoOrThree') or (RoomOption2 == 'twoOrThree') or (RoomOption3 == 'twoOrThree')">
+                          OR (room_count = 'two' OR room_count = 'three')
+                        </if> )
+                    </if>
+                    <if test="(PayOption1 != null and PayOption1 != '') or (PayOption2 != null and PayOption2 != '') or (PayOption3 != null and PayOption3 != '')">
+                      AND (1 = 0
+                        <if test="(PayOption1 == 'monthly') or (PayOption2 == 'monthly') or (PayOption3 == 'monthly')">
+                          OR (deposit != '' AND month_rent != '')
+                        </if>
+                        <if test="(PayOption1 == 'charter') or (PayOption2 == 'charter') or (PayOption3 == 'charter')">
+                          OR lease != ''
+                        </if>
+                        <if test="(PayOption1 == 'Trading') or (PayOption2 == 'Trading') or (PayOption3 == 'Trading')">
+                          <!--현재 매매는 없기 때문에 여기는 나오지 않음.-->
+                          OR 1 = 0
+                        </if> )
+                    </if>
+                    AND deposit >= #{deposit}
+                    AND lease >= #{lease}
+                    AND month_rent >= #{monthRent}
+                    AND room_space >= #{roomSpace}
+                    ) as ROOM
+          ON ROOM.DONG_id = DONGTemp.id
+          GROUP BY DONGTemp.id
+          ) as c
+    where c.TEMPID = DONG.id
+    AND DONG.latitude > #{swLat} 
+    AND #{neLat} > DONG.latitude
+    AND DONG.longitude > #{swLng} 
+    AND #{neLng} > DONG.longitude 
+  </select>
+
+  <select id="getGu" resultType="bit.com.a.dummyData.GuDto">
+  <!--
+    select * from GU where 
+    latitude > #{swLat} 
+    AND #{neLat} > latitude
+    AND longitude > #{swLng} 
+    AND #{neLng} > longitude 
+  -->
+  select GU.id, GU.name, GU.latitude, GU.longitude, GU.SI_id, c.count as count
+  from GU,
+  (
+    select GU.id as GUTEMP , sum(c.count) as count
+    from GU
+    left JOIN
+    (
+    select DONG.id, DONG.name, DONG.latitude, DONG.longitude, DONG.GU_id, c.count as count
+    from DONG , (select DONGTemp.id as TEMPID, count(ROOM.DONG_id) as count
+                  FROM DONG as DONGTemp
+                  left JOIN (
+                            select * from ROOM
+                            where del = 0
+                            <if test="(RoomOption1 != null and RoomOption1 != '') or (RoomOption2 != null and RoomOption2 != '') or (RoomOption3 != null and RoomOption3 != '')">
+                              AND (1 = 0
+                                <if test="(RoomOption1 == 'officetel') or (RoomOption2 == 'officetel') or (RoomOption3 == 'officetel')">
+                                  OR room_type = 'studio'
+                                </if>
+                                <if test="(RoomOption1 == 'one') or (RoomOption2 == 'one') or (RoomOption3 == 'one')">
+                                  OR room_count = 'one'
+                                </if>
+                                <if test="(RoomOption1 == 'twoOrThree') or (RoomOption2 == 'twoOrThree') or (RoomOption3 == 'twoOrThree')">
+                                  OR (room_count = 'two' OR room_count = 'three')
+                                </if> )
+                            </if>
+                            <if test="(PayOption1 != null and PayOption1 != '') or (PayOption2 != null and PayOption2 != '') or (PayOption3 != null and PayOption3 != '')">
+                              AND (1 = 0
+                                <if test="(PayOption1 == 'monthly') or (PayOption2 == 'monthly') or (PayOption3 == 'monthly')">
+                                  OR (deposit != '' AND month_rent != '')
+                                </if>
+                                <if test="(PayOption1 == 'charter') or (PayOption2 == 'charter') or (PayOption3 == 'charter')">
+                                  OR lease != ''
+                                </if>
+                                <if test="(PayOption1 == 'Trading') or (PayOption2 == 'Trading') or (PayOption3 == 'Trading')">
+                                  <!--현재 매매는 없기 때문에 여기는 나오지 않음.-->
+                                  OR 1 = 0
+                                </if> )
+                            </if>
+                            AND deposit >= #{deposit}
+                            AND lease >= #{lease}
+                            AND month_rent >= #{monthRent}
+                            AND room_space >= #{roomSpace}
+                            ) as ROOM
+                  ON ROOM.DONG_id = DONGTemp.id
+                  GROUP BY DONGTemp.id
+                ) as c
+    where c.TEMPID = DONG.id
+    ) as c
+    ON c.GU_id = GU.id
+    GROUP BY GU.id
+  ) as c
+  where c.GUTEMP = GU.id
+  AND GU.latitude > #{swLat} 
+  AND #{neLat} > GU.latitude
+  AND GU.longitude > #{swLng} 
+  AND #{neLng} > GU.longitude 
+  </select>
+
+  <select id="getSi" resultType="bit.com.a.dummyData.SiDto">
+    select * from SI where 
+    latitude > #{swLat} 
+    AND #{neLat} > latitude
+    AND longitude > #{swLng} 
+    AND #{neLng} > longitude 
+  </select>
+
+  <select id="getRoomList" resultType="bit.com.a.search.SGDDto">
+    select DONG.id as id, DONG.name as d_name, GU.name as g_name, SI.name as s_name, DONG.count as count, DONG.latitude , DONG.longitude
+    from DONG
+    left join GU on GU.id = DONG.GU_id
+    left join SI on SI.id = GU.SI_id
+    where DONG.count != 0
+    <if test="keyword != null and keyword != ''">
+      AND (DONG.name LIKE CONCAT("%", #{keyword}, "%")) OR (SI.name LIKE CONCAT("%", #{keyword}, "%")) OR (GU.name LIKE CONCAT("%", #{keyword}, "%"))
+    </if>
+    order by DONG.count desc, DONG.id asc
+    LIMIT 5; 
+  </select>
+
+  <!--
+  <select id="getAllBrokerList" parameterType="bit.com.a.admin.Param" resultType="bit.com.a.broker.BrokerDto">
+        SELECT *
+        FROM BROKER
+        WHERE 1=1
+        <if test="s_category != null and s_category != '' and s_keyword != null and s_keyword != ''">
+            <if test="s_category == 'brokerId'">
+                AND BROKER_ID LIKE CONCAT("%", #{s_keyword}, "%")
+            </if>
+            <if test="s_category == 'name'">
+                AND NAME LIKE CONCAT("%", #{s_keyword}, "%")
+            </if>
+        </if>
+        ORDER BY REGISTERED_AT DESC
+        LIMIT #{start}, 5;
+    </select>
+    -->
+
+
+</mapper>

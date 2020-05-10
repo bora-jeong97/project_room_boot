@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Vue-->
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="https://unpkg.com/vue-router"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!-- bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <!-- JQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="./jquery/jquery.twbsPagination.js"></script>
+    <script src="./jquery/jquery.twbsPagination.min.js"></script>
+  
+    <title>QnA</title>
+</head>
+<body>
+	<div>
+	<h1>QnA Page</h1>
+
+
+
+<!-- 게시판목록  + 검색 + 페이징(plugin) -->
+
+<div id="app" class="container">
+	<div v-if="auth==1">
+		<button @click="returnAdmin">adminPage-return</button>
+	</div>
+	<div v-else>
+		<button style="display: none;">adminPage-return</button>
+	</div>
+	<table class="table table-striped table-hover">
+	<thead>
+	<tr>
+		<th>번호</th>
+		<th>문의 유형</th>
+		<th>제목</th>
+		<th>작성자</th>
+		<th>작성일</th>
+	</tr>	
+	</thead>
+	
+	<tbody v-for="(data, index) in dataList">
+	<tr>
+		<td>{{ data.id }}</td> 
+		<td > 
+			{{data.type}}
+		</td>
+
+
+
+		<!-- 제목 title + 답글 -->
+		<td v-if="data.del===0" @click="detail(data.id)"> <!-- 시퀀스 -->
+			<span v-for=' n in data.depth '>	<!-- 댓글의 여백 -->
+				&nbsp;&nbsp;&nbsp;&nbsp;
+			</span>
+			<img v-if="data.depth > 0" src='./image/arrow.png' width='20px' height='20px'/>	<!-- 댓글이미지 -->
+            {{ data.title }}
+			<!-- title -->
+		</td>
+		<td v-else-if="data.del===1"> 
+			<span v-for=' n in data.depth '>	<!-- 댓글의 여백 -->
+				&nbsp;&nbsp;&nbsp;&nbsp;
+			</span>
+			<img v-if="data.depth > 0" src='./image/arrow.png' width='20px' height='20px'/>	<!-- 댓글이미지 -->
+            <div style="color: red;">삭제된 글입니다.</div>
+			<!-- title -->
+		</td>
+
+		<!-- 작성자 -->
+		<td v-if="data.user_id"> 
+			user_{{ data.user_id }}님
+		</td>
+		<td v-else-if="data.broker_id">
+			broker_{{ data.broker_id }}님
+		</td>
+		<td v-else>
+			관리자_{{ data.admin_id }}님
+		</td>
+		<td>
+			{{ data.wdate }}
+		</td>
+
+
+	</tr>	
+	</tbody>
+	</table>
+	
+<!-- paging -->
+	<div class="row d-flex justify-content-center">
+		<nav aria-label="Page navigation example" style="text-align: center;">
+			<ul class="pagination-sm" id="pagination"></ul>
+		</nav>	
+	</div>
+     
+
+<!-- 검색 -->
+    <!-- 옵션 -->
+	<div align="center">
+		<select v-model="s_category">
+			<option v-for="option in options" v-bind:value="option.value">
+                {{ option.text }}
+                <!-- options -->
+			</option>
+		</select>
+		
+		<!-- 검색창 -->
+		<input v-model="s_keyword" placeholder="검색어를 입력하세요" size="20">
+
+		<!-- 검색버튼 -->
+		<button v-on:click="searchBbs()">검색</button>
+
+ <!-- 버튼 -->       
+		<br><br>
+		<button v-on:click="writeBbs()">글추가</button>
+	</div>
+		
+</div>
+
+<script type="text/javascript">
+//세션
+	let login = JSON.parse(sessionStorage.getItem("login"));
+   // alert("세션 auth : "+login.auth);       // 1
+
+
+	var v = new Vue({
+		el:'#app',
+		data:{
+			auth: login.auth,
+			dataList: [],
+			s_category: 'sel',
+			s_keyword: '',
+			options:[
+				{ text:'선택', value:'sel' },
+				{ text:'제목', value:'title' },
+				{ text:'내용', value:'content' },
+				{ text:'작성자', value:'writer' }
+			]
+		},
+		mounted:function(){ //무조건 실행 mounted
+//			alert('mounted');
+			this.getList();
+		},
+		methods:{
+			getList:function(){
+
+				// 글의 총수
+				axios.get('http://localhost:8081/api/qna/getQnACount', 
+						{
+							params:{
+								s_category:'',
+								s_keyword:'',
+								recordCountPerPage:10,
+								pageNumber: 1							
+							}
+						}
+				).then(res => {
+			//		alert('getQnACount 통신성공!');
+				//	alert(res.data);	
+					loadPage( res.data ); // 아래 페이징 loadPage 함수의 파라미터로 사용됨
+				})
+				
+				// 글목록
+				axios.get('http://localhost:8081/api/qna/getQnAList',
+						{
+							params:{
+								s_category:'',
+								s_keyword:'',
+								recordCountPerPage:10,
+								pageNumber: 1							
+							}
+						}
+				).then(res => {
+				//	alert('getQnAList 통신성공!');
+				//	alert(JSON.stringify(res.data));
+                // 게시글들 데이터 받아옴 List<dto> 받아옴. 
+					this.dataList = res.data;
+					console.log(res.data);
+				})				
+			},
+            // 검색=======================================
+            searchBbs:function(){
+				// alert(this.s_category);
+				// alert(this.s_keyword);
+				
+				if(this.s_category == 'sel'){
+					this.getList();
+					return;
+				}
+
+				// 글의 총수
+				axios.get('http://localhost:8081/api/qna/getQnACount',
+				{
+					params:{
+						s_category:this.s_category,
+						s_keyword:this.s_keyword,
+						recordCountPerPage:10,
+						pageNumber: 1
+					}
+
+				}).then(res => {
+					loadPage(res.data);
+				})
+
+				// 검색된 목록
+				axios.get('http://localhost:8081/api/qna/getQnAList',
+				{
+					params:{
+						s_category:this.s_category,
+						s_keyword:this.s_keyword,
+						recordCountPerPage:10,
+						pageNumber: 1
+					}
+				}).then(res=> {
+					this.dataList = res.data;
+				})
+
+            },
+            // 글쓰기
+			writeBbs:function(){				
+				location.href = "QnAWrite.html"; 
+			}
+            ,
+			detail:function(id){  //data.id				
+				location.href = 'QnADetail.html?id=' + id; 
+			},
+			returnAdmin:function(){
+				location.href= "./admin/adminMain.html";
+			}			
+		}
+	});
+
+//페이징	
+	function loadPage( totalCount ){	 //totalCount==getQnACount	
+		var pageSize = 10;
+		var pageNumber = 1;
+		var recordCountPerPage = 10;
+		
+		var totalPages = totalCount / pageSize;
+		if (totalCount%pageSize > 0) {
+			totalPages++;
+		}
+		
+		$('#pagination').twbsPagination('destroy'); // 페이징 갱신
+		
+		$('#pagination').twbsPagination({		   
+		   totalPages: totalPages,  // 전체 page블럭 수
+		   visiblePages: 10,  // 출력될 page 블럭수 상수로 지정해 줘도 되고, 변수로 지정해줘도 된다.
+		   first: '<span aria-hidden="true">«</span>',
+		   prev: "이전",
+		   next: "다음",   
+		   last: '<span aria-hidden="true">»</span>',
+		   onPageClick: function (event, page) {	// 페이지 번호를 클릭했을 때			   
+			//   alert("page:" + page);
+		   
+				axios.get('http://localhost:8081/api/qna/getQnAList', {
+						params:{
+							s_category: v.s_category,
+							s_keyword: v.s_keyword,
+							recordCountPerPage:10,
+							pageNumber: page
+						}
+					})
+					.then(res => {
+						v.dataList = res.data;
+					}
+				)
+		   }
+		});		
+	}
+	
+
+</script>
+
+    
+</body>
+</html>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- bit.com.a.dao.BbsDao -->
+<mapper namespace="bit.com.a.review.ReviewDao">
+
+  <!-- 사용자만 리뷰 쓰기, 수정, 삭제 -->
+  <select id="getCount" parameterType="bit.com.a.review.ReviewDto" resultType="java.lang.Integer">
+	SELECT IFNULL(MAX(review_count),0)+1
+	FROM REVIEW
+  </select>
+
+  <select id="getRef" parameterType="bit.com.a.review.ReviewDto" resultType="java.lang.Integer">
+	SELECT IFNULL(MAX(ref),0)+1
+	FROM REVIEW
+  </select>
+
+  <insert id="write" parameterType="bit.com.a.review.ReviewDto" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO REVIEW(status, broker_review_id, content, grade, review_count,del, ref, step, depth, user_id, broker_id, auth, created_at, created_by)
+    <!-- id,  -->
+    VALUES(#{status}, #{brokerReviewId}, #{content}, #{grade},
+    <!-- (SELECT * FROM (SELECT MAX(id)+1 FROM REVIEW)),  -->
+    #{reviewCount} , 0, #{ref}, 0, 0, #{userId}, #{brokerId}, #{auth}, NOW(), #{userId})
+    <!-- (SELECT IFNULL(MAX(review_count),0)+1 FROM REVIEW) -->
+  </insert>
+
+  <update id="update" parameterType="bit.com.a.review.ReviewDto">
+  UPDATE REVIEW SET content=#{content}, grade=#{grade}, updated_at=NOW(), updated_by=#{userId} WHERE id=#{id}
+  </update>
+
+  <update id="delete" parameterType="bit.com.a.review.ReviewDto">
+  UPDATE REVIEW SET del=1, deleted_at=NOW(), deleted_by=#{userId} WHERE id=#{id}
+  </update>
+
+
+  <!-- 디테일 -->
+  <select id="getReview" parameterType="java.lang.Integer" resultType="bit.com.a.review.ReviewDto">
+  SELECT id, grade, profile_image, user_id, created_at, content, ref, step, depth, del
+  FROM REVIEW
+  WHERE id=#{id}
+  </select>
+
+  <!-- 관리자만 답글 -->
+  <insert id="replyInsert" parameterType="bit.com.a.review.ReviewDto">
+    INSERT INTO REVIEW(broker_review_id, content, del, ref, step, depth, broker_id, auth, created_at)
+  VALUES(#{brokerReviewId},#{content}, 0, 
+         #{ref},
+    <!-- (SELECT ref FROM REVIEW WHERE id=#{id}), -->
+    #{step},
+    <!-- (SELECT step FROM REVIEW WHERE id=#{id})+1, -->
+    #{depth},
+    <!-- (SELECT depth FROM REVIEW WHERE id=#{id})+1, -->
+    #{brokerId}, 4, NOW())
+  </insert>
+
+  <select id="getReply" parameterType="java.lang.Integer" resultType="bit.com.a.review.ReviewDto">
+	SELECT IFNULL(MAX(ref),0) as ref, IFNULL(MAX(step),0)+1 as step, IFNULL(MAX(depth),0)+1 as depth
+	FROM REVIEW
+	WHERE id=#{id}
+  </select>
+
+  <update id="replyUpdate" parameterType="bit.com.a.review.ReviewDto">
+    UPDATE REVIEW SET step=step+1
+  WHERE ref=(SELECT ref FROM REVIEW WHERE id=#{id})
+    <!-- id = seq -->
+    AND step>(SELECT step FROM REVIEW WHERE id=#{id})
+    <!-- id = seq -->
+  </update>
+
+
+  <!-- 리뷰 리스트 -->
+  <select id="getReviewList" resultType="bit.com.a.review.ReviewDto">
+    SELECT *
+    <!-- id, content, grade, review_count, del, ref, step, depth, user_id, broker_id, auth, profile_image, created_at, created_by -->
+    from REVIEW
+  WHERE 1=1 AND del=0
+  ORDER BY ref DESC, step ASC
+  LIMIT #{start}, 10;
+  </select>
+
+  <!-- 리스트에 보여 줄 총 리뷰 수(getReviewList와 함께 쓰임) -->
+  <select id="getReviewCount" parameterType="bit.com.a.review.ReviewParam" resultType="java.lang.Integer">
+  SELECT IFNULL(COUNT(*), 0) AS CNT
+  FROM REVIEW
+  WHERE 1=1 AND del=0
+  </select>
+
+
+  <!-- 사용자 리뷰 수 -->
+  <select id="getUserCount" resultType="java.lang.Integer">
+  SELECT IFNULL(COUNT(*), 0) AS CNT
+  FROM REVIEW
+  WHERE 1=1 AND auth=3
+  </select>
+
+
+  <!-- 리뷰 등급별 갯수 -->
+  <select id="getBestCount" resultType="java.lang.Integer">
+	SELECT IFNULL(COUNT(*), 0)
+	FROM REVIEW
+	WHERE grade=3
+  </select>
+
+  <select id="getGoodCount" resultType="java.lang.Integer">
+	SELECT IFNULL(COUNT(*), 0)
+	FROM REVIEW
+	WHERE grade=2
+  </select>
+
+  <select id="getFineCount" resultType="java.lang.Integer">
+	SELECT IFNULL(COUNT(*), 0)
+	FROM REVIEW
+	WHERE grade=1
+  </select>
+
+  <select id="getBadCount" resultType="java.lang.Integer">
+	SELECT IFNULL(COUNT(*), 0)
+	FROM REVIEW
+	WHERE grade=0
+  </select>
+
+
+</mapper>

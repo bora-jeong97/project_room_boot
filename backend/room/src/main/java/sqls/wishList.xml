@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- bit.com.a.dao.WishListDao -->
+<mapper namespace="bit.com.a.wishlist.WishListDao">
+
+	<!-- <typeAlias type="bit.com.a.wishlist.WishListDto" alias="Wish"/>
+<typeAlias type="bit.com.a.room.RoomDto" alias="RoomDto"/>
+<typeAlias type="bit.com.a.room.RoomOptionDto" alias="RoomOptionDto"/>
+<typeAlias type="bit.com.a.room.RoomPictureDto" alias="RoomPictureDto"/> -->
+
+	<resultMap id="UserDto" type="bit.com.a.user.UserDto">
+		<!-- <result column="id" property="id" /> -->
+		<result column="user_id" property="userId" />
+		<result column="user_password" property="userPassword" />
+		<result column="name" property="name" />
+		<result column="email" property="email" />
+		<result column="age" property="age" />
+		<result column="phone_number" property="phoneNumber" />
+		<result column="address" property="address" />
+		<result column="auth" property="auth" />
+		<result column="registered_at" property="registeredAt" />
+		<result column="registered_by" property="registeredBy" />
+		<result column="profile_image" property="profileImage" />
+	</resultMap>
+
+	<resultMap id="RoomOptionDto" type="bit.com.a.room.RoomOptionDto">
+		<result column="tv" property="tv" />
+		<result column="airconditioner" property="airconditioner" />
+		<result column="refrigerator" property="refrigerator" />
+		<result column="aircleaner" property="aircleaner" />
+		<result column="bed" property="bed" />
+		<result column="microwave" property="microwave" />
+		<result column="washer" property="washer" />
+		<result column="ROOM_id" property="roomId" />
+	</resultMap>
+
+	<resultMap id="RoomPictureDto" type="bit.com.a.room.RoomPictureDto">
+		<result column="file_name" property="fileName" />
+		<result column="ROOM_id" property="roomId" />
+	</resultMap>
+
+	<resultMap id="RoomDto" type="bit.com.a.room.RoomDto">
+		<!-- <result column="id" property="id" /> -->
+		<result column="title" property="title" />
+		<result column="content" property="content" />
+		<result column="address_detail" property="addressDetail" />
+		<result column="address_detail_zibun" property="addressDetailZibun" />
+		<result column="room_type" property="roomType" />
+		<result column="room_count" property="roomCount" />
+		<result column="deposit" property="deposit" />
+		<result column="lease" property="lease" />
+		<result column="supply_space" property="supplySpace" />
+		<result column="room_space" property="roomSpace" />
+		<result column="move_day" property="moveDay" />
+		<result column="payment_type" property="paymentType" />
+		<result column="floor" property="floor" />
+		<result column="month_rent" property="monthRent" />
+		<result column="readcount" property="readcount" />
+		<result column="wishcount" property="wishcount" />
+		<result column="del" property="del" />
+		<result column="DONG_id" property="DONGId" />
+		<result column="BROKER_id" property="BROKERId" />
+		<result column="created_at" property="createdAt" />
+		<result column="created_by" property="createdBy" />
+		<result column="updated_at" property="updatedAt" />
+		<result column="updated_by" property="updatedBy" />
+		<result column="deleted_at" property="deletedAt" />
+		<result column="deleted_by" property="deletedBy" />
+		<!-- <collection property="roomOptionDto" resultMap="RoomOptionDto" /> -->
+		<!-- 1대1 매핑시에는 association -->
+		<!-- <association property="roomOptionDto" column="id" select="getRoomOption"></association> -->
+		<!-- list등 다수를 가져올때는 collection -->
+		<!-- <collection property="roomPictureDtoList" column="id" javaType="java.util.ArrayList" ofType="RoomPictureDto" select="getRoomPicture"></collection> -->
+	</resultMap>
+
+	<resultMap id="WishListDtoMap" type="bit.com.a.wishlist.WishListDto">
+		<result column="id" property="id" />
+		<result column="USER_id" property="USERId" />
+		<result column="ROOM_id" property="ROOMId" />
+		<association property="userDto" column="USER_id" select="getUser"></association>
+		<association property="roomDto" column="ROOM_id" select="getRoom"></association>
+		<association property="roomOptionDto" column="ROOM_id" select="getRoomOption"></association>
+		<!-- <collection property="userDto" column="id" javaType="java.util.ArrayList" select="getUser"></collection>
+	<collection property="roomDto" column="id" javaType="java.util.ArrayList" select="getRoom"></collection>
+	<collection property="roomOptionDto" column="id" select="getRoomOption"></collection> -->
+		<collection property="roomPictureDtoList" column="ROOM_id" javaType="java.util.ArrayList" select="getRoomPicture"></collection>
+	</resultMap>
+
+	<select id="getUser" resultType="bit.com.a.user.UserDto">
+	SELECT * FROM USER WHERE USER_id = #{id}
+</select>
+
+	<select id="getRoom" resultType="bit.com.a.room.RoomDto">
+	SELECT * FROM ROOM WHERE id = #{id} and del = 0
+</select>
+	<select id="getRoomOption" resultType="bit.com.a.room.RoomOptionDto">
+	select * from ROOM_OPTION where ROOM_id = #{id}
+</select>
+	<!-- collection에서 사용하기위한 select문  -->
+	<select id="getRoomPicture" resultType="bit.com.a.room.RoomPictureDto">
+	select id, file_name, ROOM_id, download_count from ROOM_PICTURE where ROOM_id = #{id}
+</select>
+
+
+	<insert id="addlike" parameterType="bit.com.a.wishlist.WishListDto" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO WISH_LIST(USER_id, ROOM_id) VALUES(#{USERId}, #{ROOMId})
+</insert>
+
+	<!-- DB table에 del이 없으므로 그대로 날림 -->
+	<delete id="deletelike" parameterType="bit.com.a.wishlist.WishListDto">
+	DELETE FROM WISH_LIST WHERE USER_id = #{USERId} and ROOM_id = #{ROOMId}
+</delete>
+
+	<!-- USER_id : BIGINT -->
+	<select id="getWishList" parameterType="bit.com.a.wishlist.WishListDto" resultMap="WishListDtoMap">
+    SELECT * FROM WISH_LIST WHERE USER_id = #{USERId} order by id desc
+</select>
+
+	<select id="getWishFourList" parameterType="bit.com.a.wishlist.WishListDto" resultMap="WishListDtoMap">
+	SELECT * FROM WISH_LIST WHERE USER_id = #{USERId} order by id desc limit 0, 4
+</select>
+
+	<!-- OK
+SELECT * FROM room.WISH_LIST w INNER JOIN room.ROOM r ON w.ROOM_id = r.id WHERE w.USER_id = #{USERId}
+SELECT w.id, w.USER_id, w.ROOM_id FROM room.WISH_LIST w INNER JOIN room.ROOM r ON w.ROOM_id = r.id WHERE w.USER_id = #{USERId}
+
+SELECT w.id, w.USER_id, w.ROOM_id FROM room.WISH_LIST w LEFT OUTER JOIN room.ROOM r ON w.ROOM_id = r.id WHERE w.USER_id = #{USERId}
+
+
+SELECT * FROM WISH_LIST WHERE USER_id = #{USERId}
+
+ ↓ 결과는 두 테이블의 곱집합을 수행하는 교차 결합( Cross Join )이 되버림 
+SELECT w.id, w.USER_id, w.ROOM_id FROM room.USER u, room.ROOM r, room.WISH_LIST w WHERE w.USER_id = #{USERId}
+SELECT * FROM room.USER u, room.ROOM r, room.WISH_LIST w WHERE w.USER_id = #{USERId} AND w.ROOM_id = r.id; -->
+</mapper>

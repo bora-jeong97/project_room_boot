@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- boot -->    
+<link rel='stylesheet' href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+<!-- Vue -->
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="https://unpkg.com/vue-router"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <h1>QNADetailPage</h1>
+    <div id="app" class="container">
+        <table class="table table-striped">
+            <col width="100px"><col width="200px"> 
+             <!-- <tr style="display: none;">  -->
+           <tr>
+                <th>작성자</th>
+                <td v-if="userId">
+                    {{userId}}
+                </td>
+                <td v-else-if="brokerId">
+                   {{brokerId}}
+                </td>
+                <td v-else>
+                    {{adminId}}
+                </td>
+            </tr>	
+           <tr style="display: none;"> 
+           
+                <th >auth</th>
+                    <td>
+                        {{auth}}
+                    </td>
+            </tr>
+            <tr>
+                <th >문의 유형</th>
+                    <td>
+                        {{type}}
+                    </td>
+            </tr>
+            
+            <tr>
+                <th>제목</th>
+                <td>
+                    {{title}}		
+                </td>
+            </tr>
+            <tr>
+                <th>문의내용</th>
+                <td>
+                    <textarea rows="10" cols="50" readonly>{{content}}</textarea>		
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div style="text-align: center;">
+                        <button v-on:click="back" style="width:100px;">목록</button>
+                        <button v-on:click="QnAReply(id)" style="width:100px;" v-if="adminOnly">답글</button>
+                        <button @click="QnAUpdate(id)" style="width:100px;" v-if="isShow">수정</button>
+                        <button @click="QnADelete()"  style="width:100px;" v-if="isShow">삭제</button> 
+                        <!-- <button v-on:click="update" style="width:100px;">수정</button>
+                        <button v-on:click="delete" style="width:100px;">삭제</button> -->
+                    </div>
+
+                </td>
+            </tr>
+        </table>
+    </div>
+
+
+    <script type="text/javascript">
+//라우터
+        var router = new VueRouter({
+                mode: 'history',
+                routes: []
+            })
+//세션        
+        let login = JSON.parse(sessionStorage.getItem("login"));
+
+      //  alert("세션 id : "+login.id);           // 5
+      //  alert("userId : "+login.user_id);       // aaa
+      //  alert("brokerID : "+login.broker_id); 
+       // alert("auth : "+login.auth);            // 3
+//user_id검증
+        new Vue({
+            router,
+            el: '#app',
+            data:{
+                id: '',
+                userId: '',
+                brokerId: '',
+                title:'',
+                content:'',
+                auth:'',
+                type:'',
+                adminId:'',
+                isShow: false,
+                adminOnly : false
+
+               
+            },
+            mounted: function(){
+                let parameters = this.$route.query
+              //  alert('파라미터들: '+parameters); //object object
+               //  alert('parameters.id'+id); //이거 안됨! 후 
+
+                axios.get("http://localhost:8081/api/qna/getQnA",{
+                    params:{
+                        id:parameters.id
+                    }
+                }).then(res=>{
+               //     alert("getQnA 통신성공");
+              
+                 //   alert(JSON.stringify("문자화한 데이터 값:"+res.data));
+
+                    var bbs = res.data; // 받아온 데이터를 삽입
+                    
+                    this.id = bbs.id; //답글용
+                    this.userId = bbs.user_id;
+                    this.brokerId = bbs.broker_id;
+                    this.title = bbs.title;
+                    this.content= bbs.content;
+                    this.auth = bbs.auth;
+                    this.type = bbs.type;
+                    this.adminId = bbs.admin_id;
+
+            //수정삭제 버튼
+                    if(this.userId == login.user_id || login.auth == 1){
+                        this.isShow = true;
+                    }
+                    if(this.brokerId == login.broker_id){
+                        this.isShow = true;
+                    }
+                    if( login.auth == 1){
+                        this.adminOnly = true;
+                    }
+                    //console.log('bbs.id:'+bbs.id); //잘나옴 17로
+                    // console.log(this.brokerId);
+                    // console.log("로그인"+login.broker_id)
+
+
+                })
+            },
+            methods:{
+                back:function(){
+                    location.href = 'QnA.html';
+                },
+                QnAReply:function(id){
+                     location.href = 'QnAReply.html?id='+id; //bbs.id(seq)를 가지고 간다. id라는 이름으로
+                },
+                QnAUpdate:function(id){               //delete update자체는 메소드명으로 사용금지
+                    location.href ='QnAUpdate.html?id='+id;
+                }
+                ,
+                QnADelete:function(){
+                    alert("삭제실행");
+                    axios.get("http://localhost:8081/api/qna/deleteQnA",{
+                        params:{
+                            id : this.id
+                        }
+                    }).then(res =>{
+                        console.log("삭제하는 id:"+this.id);
+
+                        if(res.data > 0){
+                            alert("삭제되었습니다.");
+                            location.href="QnA.html";
+                        }else{
+                            alert("삭제되지 않았습니다.");
+                        }
+                    })
+
+                }
+            }
+        });
+
+    </script>
+    
+
+
+
+</body>
+</html>

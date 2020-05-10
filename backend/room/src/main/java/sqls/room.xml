@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- bit.com.a.dao.BbsDao -->
+<mapper namespace="bit.com.a.room.RoomDao">
+
+	<resultMap id="RoomOptionDto" type="bit.com.a.room.RoomOptionDto">
+		<result column="tv" property="tv" />
+		<result column="airconditioner" property="airconditioner" />
+		<result column="refrigerator" property="refrigerator" />
+		<result column="aircleaner" property="aircleaner" />
+		<result column="bed" property="bed" />
+		<result column="microwave" property="microwave" />
+		<result column="washer" property="washer" />
+		<result column="ROOM_id" property="roomId" />
+	</resultMap>
+
+	<resultMap id="RoomPictureDto" type="bit.com.a.room.RoomPictureDto">
+		<result column="file_name" property="fileName" />
+		<result column="ROOM_id" property="roomId" />
+	</resultMap>
+
+	<resultMap id="RoomDtoMap" type="bit.com.a.room.RoomDto">
+		<result column="id" property="id" />
+		<result column="title" property="title" />
+		<result column="content" property="content" />
+		<result column="address_detail" property="addressDetail" />
+		<result column="address_detail_zibun" property="addressDetailZibun" />
+		<result column="room_type" property="roomType" />
+		<result column="room_count" property="roomCount" />
+		<result column="deposit" property="deposit" />
+		<result column="lease" property="lease" />
+		<result column="supply_space" property="supplySpace" />
+		<result column="room_space" property="roomSpace" />
+		<result column="move_day" property="moveDay" />
+		<result column="payment_type" property="paymentType" />
+		<result column="floor" property="floor" />
+		<result column="month_rent" property="monthRent" />
+		<result column="readcount" property="readcount" />
+		<result column="wishcount" property="wishcount" />
+		<result column="del" property="del" />
+		<result column="DONG_id" property="DONGId" />
+		<result column="BROKER_id" property="BROKERId" />
+		<result column="latitude" property="latitude" />
+		<result column="longitude" property="longitude" />
+		<result column="created_at" property="createdAt" />
+		<result column="created_by" property="createdBy" />
+		<result column="updated_at" property="updatedAt" />
+		<result column="updated_by" property="updatedBy" />
+		<result column="deleted_at" property="deletedAt" />
+		<result column="deleted_by" property="deletedBy" />
+		<!-- <collection property="roomOptionDto" resultMap="RoomOptionDto" /> -->
+		<!-- 1대1 매핑시에는 association -->
+		<association property="roomOptionDto" column="id" select="getRoomOption"></association>
+		<!-- list등 다수를 가져올때는 collection -->
+		<collection property="roomPictureDtoList" column="id" javaType="java.util.ArrayList" ofType="bit.com.a.room.RoomPictureDto" select="getRoomPicture"></collection>
+		<!-- 각 room의 찜한 목록 리스트 가져오기 -->
+		<collection property="roomWishList" column="id" javaType="java.util.ArrayList" select="getWishList"></collection>
+	</resultMap>
+
+	<select id="getRoomOption" resultType="bit.com.a.room.RoomOptionDto">
+		select * from ROOM_OPTION where ROOM_id = #{id}
+	</select>
+	<!-- collection에서 사용하기위한 select문  -->
+	<select id="getRoomPicture" resultType="bit.com.a.room.RoomPictureDto">
+		select id, file_name, ROOM_id, download_count from ROOM_PICTURE where ROOM_id = #{id}
+	</select>
+	<!-- room 좋아요 리스트 가져오기 -->
+	<!-- <select id="getWishList" resultType="bit.com.a.wishlist.WishListDto">
+    SELECT * FROM WISH_LIST WHERE USER_id = #{id}
+</select> -->
+
+	<select id="getWishList" resultType="bit.com.a.wishlist.WishListDto">
+	SELECT * FROM WISH_LIST WHERE ROOM_id = #{id}
+</select>
+
+	<!-- 디테일 -->
+
+	<select id="getRoomMap" resultMap="RoomDtoMap">
+		select * from ROOM  where id = #{id}
+		<!-- where ROOM_id = #{id} -->
+	</select>
+
+
+	<!-- 리스트 가져오기 -->
+	<select id="getRoomMapList" resultMap="RoomDtoMap">
+		select * from ROOM
+		where del = 0
+		<if test="(RoomOption1 != null and RoomOption1 != '') or (RoomOption2 != null and RoomOption2 != '') or (RoomOption3 != null and RoomOption3 != '')">
+			AND (1 = 0
+			<if test="(RoomOption1 == 'officetel') or (RoomOption2 == 'officetel') or (RoomOption3 == 'officetel')">
+				OR room_type = 'studio'
+			</if>
+			<if test="(RoomOption1 == 'one') or (RoomOption2 == 'one') or (RoomOption3 == 'one')">
+				OR room_count = 'one'
+			</if>
+			<if test="(RoomOption1 == 'twoOrThree') or (RoomOption2 == 'twoOrThree') or (RoomOption3 == 'twoOrThree')">
+				OR (room_count = 'two' OR room_count = 'three')
+			</if> )
+		</if>
+		<if test="(PayOption1 != null and PayOption1 != '') or (PayOption2 != null and PayOption2 != '') or (PayOption3 != null and PayOption3 != '')">
+			AND (1 = 0
+			<if test="(PayOption1 == 'monthly') or (PayOption2 == 'monthly') or (PayOption3 == 'monthly')">
+				OR (deposit != '' AND month_rent != '')
+			</if>
+			<if test="(PayOption1 == 'charter') or (PayOption2 == 'charter') or (PayOption3 == 'charter')">
+				OR lease != ''
+			</if>
+			<if test="(PayOption1 == 'Trading') or (PayOption2 == 'Trading') or (PayOption3 == 'Trading')">
+				<!--현재 매매는 없기 때문에 여기는 나오지 않음.-->
+				OR 1 = 0
+			</if> )
+		</if>
+		AND deposit >= #{deposit}
+		AND lease >= #{lease}
+		AND month_rent >= #{monthRent}
+		AND room_space >= #{roomSpace}
+		AND latitude > #{swLat} 
+		AND #{neLat} > latitude
+		AND longitude > #{swLng} 
+		AND #{neLng} > longitude 
+		ORDER BY created_at DESC LIMIT 10 OFFSET #{currentPage};
+	</select>
+
+	<select id="getRoomMapListCount" resultType="java.lang.Integer">
+		select count(*) from ROOM
+		where del = 0
+		<if test="(RoomOption1 != null and RoomOption1 != '') or (RoomOption2 != null and RoomOption2 != '') or (RoomOption3 != null and RoomOption3 != '')">
+			AND (1 = 0
+			<if test="(RoomOption1 == 'officetel') or (RoomOption2 == 'officetel') or (RoomOption3 == 'officetel')">
+				OR room_type = 'studio'
+			</if>
+			<if test="(RoomOption1 == 'one') or (RoomOption2 == 'one') or (RoomOption3 == 'one')">
+				OR room_count = 'one'
+			</if>
+			<if test="(RoomOption1 == 'twoOrThree') or (RoomOption2 == 'twoOrThree') or (RoomOption3 == 'twoOrThree')">
+				OR (room_count = 'two' OR room_count = 'three')
+			</if> )
+		</if>
+		<if test="(PayOption1 != null and PayOption1 != '') or (PayOption2 != null and PayOption2 != '') or (PayOption3 != null and PayOption3 != '')">
+			AND (1 = 0
+			<if test="(PayOption1 == 'monthly') or (PayOption2 == 'monthly') or (PayOption3 == 'monthly')">
+				OR (deposit != '' AND month_rent != '')
+			</if>
+			<if test="(PayOption1 == 'charter') or (PayOption2 == 'charter') or (PayOption3 == 'charter')">
+				OR lease != ''
+			</if>
+			<if test="(PayOption1 == 'Trading') or (PayOption2 == 'Trading') or (PayOption3 == 'Trading')">
+				<!--현재 매매는 없기 때문에 여기는 나오지 않음.-->
+				OR 1 = 0
+			</if> )
+		</if>
+		AND deposit >= #{deposit}
+		AND lease >= #{lease}
+		AND month_rent >= #{monthRent}
+		AND room_space >= #{roomSpace}
+		AND latitude > #{swLat} 
+		AND #{neLat} > latitude
+		AND longitude > #{swLng} 
+		AND #{neLng} > longitude 
+	</select>
+
+	<!-- 디테일 가져오기 -->
+	<select id="getRoomDetail" parameterType="bit.com.a.room.RoomDto" resultMap="RoomDtoMap">
+	select * from ROOM where id = #{id};
+</select>
+
+	<!-- 디테일 파트 공인중개사의 다른 판매글들 보여주기 -->
+	<select id="getRoomBrokerList" parameterType="bit.com.a.room.RoomDto" resultMap="RoomDtoMap">
+	select * from ROOM where not id=#{id} ORDER BY created_at DESC LIMIT 4 OFFSET 0;
+</select>
+
+	<!-- 성공적!!  -->
+	<!--  	 <insert id="addroom" parameterType="bit.com.a.room.RoomDto"  useGeneratedKeys="true" keyProperty="id">
+	 INSERT INTO ROOM(deposit)
+	  VALUES(#{deposit}) 
+	 </insert>
+	 
+	  <insert id="addRoomOption" parameterType="bit.com.a.room.RoomOptionDto"  useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO ROOM_OPTION(tv)
+		VALUES(#{tv})
+	 </insert> -->
+	<update id="deleteRoom" parameterType="bit.com.a.room.RoomDto">
+	update ROOM set del = 1 where id =#{id}
+</update>
+
+	<!-- now() = SYSOUT -->
+	<!-- 방올리기 페이지  -->
+	<insert id="addroom" parameterType="bit.com.a.room.RoomDto" useGeneratedKeys="true" keyProperty="id">
+	 INSERT INTO ROOM(title, content, address_detail, address_detail_zibun, room_type, room_count, 
+	 				  deposit, lease, supply_space ,room_space, move_day, payment_type,
+	 				 floor, month_rent, del, BROKER_id, created_at, latitude, longitude, DONG_id )
+	  VALUES(#{title}, #{content}, #{addressDetail}, #{addressDetailZibun}, #{roomType}, #{roomCount}, 
+	  				  #{deposit}, #{lease}, #{supplySpace}, #{roomSpace}, #{moveDay}, #{paymentType},
+	  				#{floor}, #{monthRent}, 0, #{BROKERId} , NOW(), #{latitude} , #{longitude}, #{DONGId})  
+	 </insert>
+
+
+	<update id="updateRoom" parameterType="bit.com.a.room.RoomDto">
+		UPDATE ROOM SET title = #{title}, content=  #{content}, address_detail=#{addressDetail},
+		 address_detail_zibun =  #{addressDetailZibun}, room_type = #{roomType}, room_count= #{roomCount}, 
+							deposit=  #{deposit}, lease= #{lease}, supply_space= #{supplySpace} ,room_space= #{roomSpace}, move_day= #{moveDay}, payment_type= #{paymentType},
+						 floor = #{floor}, month_rent = #{monthRent}, updated_at = NOW() 
+						 where id = #{id}
+		</update>
+	<update id="updateRoomOption" parameterType="bit.com.a.room.RoomOptionDto">
+			UPDATE ROOM_OPTION SET tv =#{tv}, airconditioner =#{airconditioner}, airconditioner =#{airconditioner},
+			refrigerator = #{refrigerator}, aircleaner=#{aircleaner}, bed=#{bed}, microwave = #{microwave}, washer = #{washer}
+			where ROOM_id = #{roomId}
+		 </update>
+
+	<!-- 파일 업로드 -->
+
+	<insert id="addRoomPicture" parameterType="bit.com.a.room.RoomPictureDto" useGeneratedKeys="true" keyProperty="id">
+		 INSERT INTO ROOM_PICTURE(file_name, real_file_name, ROOM_id, download_count)
+		 VALUES(#{fileName}, #{realFileName}, #{roomId}, #{downloadCount})
+	 </insert>
+
+	<delete id="deletePictures" parameterType="bit.com.a.room.RoomPictureDto">
+		 delete from ROOM_PICTURE where ROOM_id = #{roomId}
+	 </delete>
+
+	<!-- 글 삭제하기  -->
+
+
+	<!-- 	 <insert id="addRoom" parameterType="bit.com.a.room.RoomDto"  useGeneratedKeys="true" keyProperty="id">
+	 INSERT INTO ROOM(title, content, address_detail, room_type, room_count, deposit, room_space, move_day, payment_type,
+	  floor, month_rent, del, DONG_id, BROKER_id, created_at, created_by)
+	  VALUES(#{title}, #{content}, #{addressDetail}, #{roomType}, #{roomCount}, 
+	  #{deposit}, #{roomSpace}, #{moveDay}, #{paymentType},
+	  #{floor}, #{monthRent}, 0, #{DONGId}, #{BROKERId}, NOW(), #{userId})  
+	 </insert>
+	  -->
+
+	<insert id="addRoomOption" parameterType="bit.com.a.room.RoomOptionDto" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO ROOM_OPTION(tv, airconditioner, refrigerator, aircleaner, bed, microwave, washer, ROOM_id)
+		VALUES(#{tv}, #{airconditioner},#{refrigerator},#{aircleaner},#{bed},#{microwave},#{washer}, #{roomId})
+	 </insert>
+	<!-- // 방올리기 페이지  -->
+
+	<select id="getDongByName" parameterType="String" resultType="bit.com.a.dummyData.DongDto">
+		select * from DONG where name = #{value}
+	</select>
+
+	<select id="getDong" parameterType="java.lang.Integer" resultType="bit.com.a.dummyData.DongDto">
+		select * from DONG where id = #{value}
+	</select>
+
+	<select id="getGu" parameterType="java.lang.Integer" resultType="bit.com.a.dummyData.GuDto">
+		select * from GU where id = #{value}
+	</select>
+
+	<select id="getSi" parameterType="java.lang.Integer" resultType="bit.com.a.dummyData.SiDto">
+		select * from SI where id = #{value}
+	</select>
+	
+	<update id="updateDongCount" parameterType="java.lang.Integer">
+		update DONG set count = (count + 1) where id = #{value}
+	</update>
+
+	<update id="updateGuCount" parameterType="java.lang.Integer">
+		update GU set count = (count + 1) where id = #{value}
+	</update>
+
+	<update id="updateSiCount" parameterType="java.lang.Integer">
+		update SI set count = (count + 1) where id = #{value}
+	</update>
+
+</mapper>

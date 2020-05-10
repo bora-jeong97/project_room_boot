@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <title>Document</title>
+</head>
+<body>
+
+<div id="app">
+    <div style="width:800px">
+        <canvas id="myChart"></canvas>
+    </div>
+rafsdfasfd
+    {{day0}}{{day1}}{{day2}}{{day3}}{{day4}}{{day5}}{{day6}}
+
+</div>
+
+
+<script type="text/javascript">
+
+var vu = new Vue({
+    el: "#app",
+    data: {
+        create_at: "",
+        day0: "",
+        day1: "",
+        day2: "",
+        day3: "",
+        day4: "",
+        day5: "",
+        day6: ""
+    },
+    mounted: function() {
+        this.getRoomCount();
+    },
+    methods: {
+        getRoomCount: function() {
+            axios.get("http://localhost:8081/api/admin/getRoomCount").then(res => {
+                //alert("통신 성공");
+
+                console.log("방총 갯수는 " + res.data);
+                console.log("Stringify : " + JSON.stringify(res.data));
+                /*
+                this.todayCount = res.data;
+                console.log(this.todayCount);
+                myChart(res.data);
+                */
+                var myDate = res.data;
+
+                this.day0 = myDate.TIMESTAMPDIFF0;
+                this.day1 = myDate.TIMESTAMPDIFF1;
+                this.day2 = myDate.TIMESTAMPDIFF2;
+                this.day3 = myDate.TIMESTAMPDIFF3;
+                this.day4 = myDate.TIMESTAMPDIFF4;
+                this.day5 = myDate.TIMESTAMPDIFF5;
+                this.day6 = myDate.TIMESTAMPDIFF6;
+
+                
+            })
+        }
+    }
+});
+
+
+
+// 우선 컨텍스트를 가져옵니다. 
+var ctx = document.getElementById("myChart").getContext('2d');
+/*
+- Chart를 생성하면서, 
+- ctx를 첫번째 argument로 넘겨주고, 
+- 두번째 argument로 그림을 그릴때 필요한 요소들을 모두 넘겨줍니다. 
+*/
+var myChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ["일주일전", "6일전", "5일전", "나흘전", "사흘전", "어제", "오늘"],
+        datasets: [{
+            label: '# of Votes',
+            data: [vu.day6, vu.day5, vu.day4, vu.day3, vu.day2, vu.day1, vu.day0],
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(255, 206, 86, 0.2)',
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(153, 102, 255, 0.2)',
+                'rgba(255, 159, 64, 0.2)',
+                'rgba(255, 206, 86, 0.2)'
+            ],
+            borderColor: [
+                'rgba(255,99,132,1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(255, 206, 86, 1)',
+                'rgba(75, 192, 192, 1)',
+                'rgba(153, 102, 255, 1)',
+                'rgba(255, 159, 64, 1)',
+                'rgba(54, 162, 235, 1)'
+            ],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        maintainAspectRatio: true, // default value. false일 경우 포함된 div의 크기에 맞춰서 그려짐.
+        scales: {
+            yAxes: [{
+                ticks: {
+                    beginAtZero:true
+                }
+            }]
+        }
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+    
+</body>
+</html>

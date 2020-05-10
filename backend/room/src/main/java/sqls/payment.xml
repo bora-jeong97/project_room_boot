@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- bit.com.a.dao.BbsDao -->
+<mapper namespace="bit.com.a.payment.PaymentDao">
+
+
+	<!-- now() = SYSOUT -->
+
+	<!-- payment -->
+
+	<!-- payment insert -->
+	<insert id="insertPayment" parameterType="bit.com.a.payment.PaymentDto" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO payment(payment, payment_type, broker_id, payment_at) 
+		VALUES(#{payment}, #{paymentType}, #{brokerId}, NOW())
+	</insert>
+
+	<!--  select 만들어서 그 유저를 조회  -->
+	<select id="getSelectedBroker" parameterType="bit.com.a.broker.BrokerDto" resultType="bit.com.a.broker.BrokerDto">
+        SELECT *
+        FROM BROKER
+        WHERE id=#{id}
+    </select>
+
+
+	<!-- broker update -->
+	<update id="updatePaymentBroker" parameterType="bit.com.a.broker.BrokerDto">
+		UPDATE BROKER                        
+		SET write_count=#{writeCount}
+		WHERE id=#{id}
+	</update>
+
+	<select id="getPaymentAdminCount" resultType="java.lang.Integer">
+		SELECT IFNULL(COUNT(*), 0)
+		FROM payment
+	</select>
+
+	<select id="getPaymentAdmin" parameterType="bit.com.a.payment.PaymentAdminParam" resultType="bit.com.a.payment.PaymentDto">
+        SELECT *
+        FROM payment
+		ORDER BY payment_at DESC
+        LIMIT #{start}, 5;
+	</select>
+
+	<!-- 회원의 결제 내역 리스트 -->
+	<select id="getPaymentBrokerCount" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+		SELECT IFNULL(COUNT(*), 0) 
+		FROM payment where broker_id=#{id}
+	</select>
+
+
+	<select id="getPaymentBrokerList" parameterType="bit.com.a.payment.PaymentAdminParam" resultType="bit.com.a.payment.PaymentDto">
+		SELECT *
+		FROM payment
+		where broker_id=#{id}
+ORDER BY payment_at DESC
+		LIMIT #{start}, 3;
+</select>
+
+
+	<!-- 
+ <service>
+ 
+ PaymentDto dto = new PaymentDto;
+ if(dto.getPayment() == 100000){
+ 	int count = 10;
+ }else if... {
+ 	int count = 20;
+ }else{
+ 	int count = 30;
+ }
+ 
+ BrokerDto brokerDto = new BrokerDto();
+ brokerDto.setCount(brokerDto.getWriteCount() + count);
+ 
+
+ int result = dao.update broker
+ 
+ 
+ 
+ public class priceDTO() {
+	private id;
+	private price;
+	private count; 
+
+
+	<mysql db price>
+	id		price		count
+	1		100000		10
+	2		200000		20
+	3		300000		30
+	4		350000		50
+
+	<query>
+	select count
+	from price
+	where price=#{price}
+ }
+ 
+ 
+ 
+  -->
+
+	<!--  
+ broker테이블  riteCount 업데이트 +10
+ broker_id는 파라미터 값으로 받아서 우선적으로 뷰딴에 띄워주고 
+ payment테이블 insert
+
+ //관리자 페이지 뷰딴에서 total 통계 함수
+   -->
+
+
+</mapper>

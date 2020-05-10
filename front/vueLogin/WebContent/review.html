@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/vue/dist/vue.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+    <!-- <link rel="stylesheet" href="./css/layout.css"> -->
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- import JavaScript -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <!-- 글자수 제한 jquery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <!-- 페이징 -->
+    <script src="./jquery/jquery.twbsPagination.js"></script>
+    <script src="./jquery/jquery.twbsPagination.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <p>
+            부동산 리뷰
+            <span>( {{ UserCount }} )</span>    <!-- 총 리뷰 수(중개사 댓글 제외) -->
+        </p>
+        <div>
+            <textarea rows="10" cols="50" id="content" v-model="content" v-on:input="typing" v-text="content" placeholder="해당 부동산의 전체적인 평가에 대해 상세하게 작성  (상세한 리뷰는 도움이 되지만, 무조건적인 비방글은 삼가해주세요!)"></textarea>
+            <h4 style="display:none">{{ userId }}</h4>
+            <h4 style="display:none">{{ brokerId }}</h4>
+            <!-- 글자수 제한 1000 -->            
+            <p>
+                {{ content.length }} / 1000
+            </p>
+        </div>
+        <div>
+            <div v-if="auth == 3">
+                <p>평가를 선택하세요</p>
+                <div style="display: inline-block;">
+                    <!-- 이모티콘 -->                
+                    <svg width="24" height="24" viewBox="0 0 24 24">
+                        <g fill="#FFF" fill-rule="evenodd">
+                            <path stroke="#4383ff" stroke-width="1.2" d="M23 12c0 6.075-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1s11 4.925 11 11z"></path>
+                            <path fill="#4383ff" d="M7.82 11.164c.192-.156 1.436-1.254 1.753-1.698a1.18 1.18 0 0 0 .227-.748C9.8 8.1 9.336 7.6 8.765 7.6c-.566 0-.945.637-.945.637S7.44 7.6 6.875 7.6c-.571 0-1.035.5-1.035 1.118 0 .264.044.49.227.748.317.444 1.561 1.542 1.753 1.698zM16.18 11.164c.192-.156 1.436-1.254 1.753-1.698a1.18 1.18 0 0 0 .227-.748c0-.618-.464-1.118-1.035-1.118-.566 0-.945.637-.945.637s-.38-.637-.945-.637c-.571 0-1.035.5-1.035 1.118 0 .264.044.49.227.748.317.444 1.561 1.542 1.753 1.698z"></path>
+                            <path fill="#4383ff" stroke="#4383ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M17.5 13.98c0 3.038-2.462 4.932-5.5 4.932s-5.5-1.894-5.5-4.932h11z"></path>
+                        </g>
+                    </svg>
+                    <input type="radio" v-model="grade" value="3">
+                    <span>최고예요</span>                
+                </div>
+                <div style="display: inline-block;">            
+                    <!-- 이모티콘 -->
+                    <svg width="24" height="24" viewBox="0 0 24 24">
+                        <g fill="#FFF" fill-rule="evenodd">
+                            <g stroke="#48d0ae" stroke-width="2">
+                                <path d="M23 12c0 6.075-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1s11 4.925 11 11z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.5 13.98c0 3.038-2.462 4.932-5.5 4.932s-5.5-1.894-5.5-4.932h11z" fill="#48d0ae"></path>
+                            </g>
+                            <g fill="#48d0ae" transform="translate(6.5 8.7)">
+                                <circle cx="1.32" cy="1.32" r="1.32"></circle>
+                                <circle cx="9.68" cy="1.32" r="1.32"></circle>
+                            </g>
+                        </g>
+                    </svg>
+                    <input type="radio" v-model="grade" value="2">
+                    <span>좋아요</span>            
+                </div>
+                <div style="display: inline-block;">            
+                    <!-- 이모티콘 -->                
+                    <svg width="24" height="24" viewBox="0 0 24 24">
+                        <g fill="#FFF" fill-rule="evenodd">
+                            <path stroke="#ffbb31" stroke-width="1.2" d="M23 12c0 6.075-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1s11 4.925 11 11z"></path>
+                            <g fill="#ffbb31" transform="translate(6.5 8.7)">
+                                <rect width="8.8" height="1.65" x="1.1" y="7.7" rx=".825"></rect>
+                                <circle cx="1.32" cy="1.32" r="1.32"></circle>
+                                <circle cx="9.68" cy="1.32" r="1.32"></circle>
+                            </g>
+                        </g>
+                    </svg>
+                    <input type="radio" v-model="grade" value="1">
+                    <span>괜찮아요</span>            
+                </div>
+                <div style="display: inline-block;">            
+                    <!-- 이모티콘 -->               
+                    <svg width="24" height="24" viewBox="0 0 24 24">
+                        <g fill="#FFF" fill-rule="evenodd">
+                            <path stroke="#ee5464" stroke-width="1.2" d="M23 12c0 6.075-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1s11 4.925 11 11z"></path>
+                            <g fill="#ee5464" transform="translate(6.5 8.7)">
+                                <circle cx="1.32" cy="1.32" r="1.32"></circle>
+                                <circle cx="9.68" cy="1.32" r="1.32"></circle>
+                            </g>
+                            <path stroke="#ee5464" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" d="M16.62 17.23c-.931-1.805-2.471-2.708-4.62-2.708s-3.689.903-4.62 2.708"></path>
+                        </g>
+                    </svg>
+                    <input type="radio" v-model="grade" value="0">
+                    <span>글쎄요</span>
+                </div>
+            </div>
+            <div>
+                <button @click="addreview" v-if="auth == 3">등록</button>  
+                <button @click="addReply(id)" v-if="isShow">답변</button>          
+                <button @click="updateReply(id)" v-if="isShow">글수정</button>
+                <button @click="deleteReply(id)" v-if="isShow">글삭제</button>
+            </div>
+        </div>
+        <div>
+            <div style="display: inline-block;">
+                <!-- 이모티콘 -->
+                <svg width="24" height="24" viewBox="0 0 24 24">
+                    <g fill="#FFF" fill-rule="evenodd">
+                        <path stroke="#4383ff" stroke-width="1.2" d="M23 12c0 6.075-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1s11 4.925 11 11z"></path>
+                        <path fill="#4383ff" d="M7.82 11.164c.192-.156 1.436-1.254 1.753-1.698a1.18 1.18 0 0 0 .227-.748C9.8 8.1 9.336 7.6 8.765 7.6c-.566 0-.945.637-.945.637S7.44 7.6 6.875 7.6c-.571 0-1.035.5-1.035 1.118 0 .264.044.49.227.748.317.444 1.561 1.542 1.753 1.698zM16.18 11.164c.192-.156 1.436-1.254 1.753-1.698a1.18 1.18 0 0 0 .227-.748c0-.618-.464-1.118-1.035-1.118-.566 0-.945.637-.945.637s-.38-.637-.945-.637c-.571 0-1.035.5-1.035 1.118 0 .264.044.49.227.748.317.444 1.561 1.542 1.753 1.698z"></path>
+                        <path fill="#4383ff" stroke="#4383ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M17.5 13.98c0 3.038-2.462 4.932-5.5 4.932s-5.5-1.894-5.5-4.932h11z"></path>
+                    </g>
+                </svg>
+                <p>최고예요</p>
+                <!-- 해당 리뷰 수 -->
+                <p>{{ best }}</p>               
+            </div>
+            <div style="display: inline-block;">            
+                <!-- 이모티콘 -->
+                <svg width="24" height="24" viewBox="0 0 24 24">
+                    <g fill="#FFF" fill-rule="evenodd">
+                        <g stroke="#48d0ae" stroke-width="1.2">
+                            <path d="M23 12c0 6.075-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1s11 4.925 11 11z"></path>
+                            <path fill="#48d0ae" stroke-linecap="round" stroke-linejoin="round" d="M17.5 13.98c0 3.038-2.462 4.932-5.5 4.932s-5.5-1.894-5.5-4.932h11z"></path>
+                        </g>
+                        <g fill="#48d0ae" transform="translate(6.5 8.7)">
+                            <circle cx="1.32" cy="1.32" r="1.32"></circle>
+                            <circle cx="9.68" cy="1.32" r="1.32"></circle>
+                        </g>
+                    </g>
+                </svg>
+                <p>좋아요</p>
+                <p>{{ good }}</p>              
+            </div>
+            <div style="display: inline-block;">            
+                <!-- 이모티콘 -->
+                <svg width="24" height="24" viewBox="0 0 24 24">
+                    <g fill="#FFF" fill-rule="evenodd">
+                        <path stroke="#ffbb31" stroke-width="1.2" d="M23 12c0 6.075-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1s11 4.925 11 11z"></path>
+                        <g fill="#ffbb31" transform="translate(6.5 8.7)">
+                            <rect width="8.8" height="1.65" x="1.1" y="7.7" rx=".825"></rect>
+                            <circle cx="1.32" cy="1.32" r="1.32"></circle>
+                            <circle cx="9.68" cy="1.32" r="1.32"></circle>
+                        </g>
+                    </g>
+                </svg>
+                <p>괜찮아요</p>
+                <p>{{ fine }}</p>                
+            </div>
+            <div style="display: inline-block;">            
+                <!-- 이모티콘 -->
+                <svg width="24" height="24" viewBox="0 0 24 24">
+                    <g fill="#FFF" fill-rule="evenodd">
+                        <path stroke="#ee5464" stroke-width="1.2" d="M23 12c0 6.075-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1s11 4.925 11 11z"></path>
+                        <g fill="#ee5464" transform="translate(6.5 8.7)">
+                            <circle cx="1.32" cy="1.32" r="1.32"></circle>
+                            <circle cx="9.68" cy="1.32" r="1.32"></circle>
+                        </g>
+                        <path stroke="#ee5464" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4" d="M16.62 17.23c-.931-1.805-2.471-2.708-4.62-2.708s-3.689.903-4.62 2.708"></path>
+                    </g>
+                </svg>
+                <p>글쎄요</p>
+                <p>{{ bad }}</p>
+            </div>
+        </div>
+<!-- 
+        <div>            
+            <table>                
+                <tbody v-for="(data, index) in dataList">
+                    <tr>                    
+                        <td @click="detail(data.id)">
+                            <span v-for=' n in data.depth '>	<!-- 댓글의 여백 --><!--
+                                &nbsp;&nbsp;&nbsp;&nbsp;
+                            </span>
+                            <!-- 댓글이미지 --><!--
+                            <img v-if="data.depth > 0" src='../../../frontend/src/assets/arrow2.png' width='20px' height='20px' border-left='solid 1px #979797' border-bottom='solid 1px #979797' position='absolute' top:='30px' left='132px' />
+                            {{ data.profile_image }} {{ data.user_id }} {{ data.broker_id }} {{ data.created_at }} {{ data.content }}
+                        </td>
+                        <td>{{ data.grade == 3 ? '최고예요' : data.grade == 2 ? '좋아요' : data.grade == 1 ? '괜찮아요' : data.grade == 0 ? '글쎄요' : '?' }}</td>
+                    </tr>	
+                </tbody>
+            </table>            
+        </div> -->
+
+    
+        <ul>
+            <li v-for="(data, index) in dataList">
+                <div>
+                    <div>
+                        <!-- 선택한 평가등급에 따른 이모티콘 -->
+                        <div>
+                            <svg width="44" height="44" viewBox="0 0 44 44">
+                                <g fill="none" fill-rule="evenodd">
+                                    <circle cx="22" cy="22" r="22" fill="#4383FF"></circle>
+                                    <path fill="#FFF" d="M38 22c0 8.836-7.164 16-16 16S6 30.836 6 22 13.164 6 22 6s16 7.164 16 16zm-8 3H14c0 4.311 3.582 7 8 7s8-2.689 8-7zm-13.814-3.63c.277-.226 2.077-1.814 2.535-2.457.264-.371.328-.699.328-1.082 0-.893-.67-1.616-1.497-1.616-.818 0-1.366.922-1.366.922s-.55-.922-1.367-.922c-.827 0-1.497.723-1.497 1.616 0 .383.064.71.329 1.082.458.643 2.257 2.23 2.535 2.456zm11.57 0c.278-.226 2.078-1.814 2.535-2.457.265-.371.33-.699.33-1.082 0-.893-.671-1.616-1.498-1.616-.818 0-1.367.922-1.367.922s-.548-.922-1.366-.922c-.827 0-1.497.723-1.497 1.616 0 .383.064.71.329 1.082.457.643 2.257 2.23 2.534 2.456z"></path>
+                                </g>
+                            </svg>
+                            <p>{{ data.grade == 3 ? '최고예요' : data.grade == 2 ? '좋아요' : data.grade == 1 ? '괜찮아요' : data.grade == 0 ? '글쎄요' : '?' }}</p>
+                        </div>
+                        <div>
+                            <div @click="detail(data.id)">
+                                <span v-for=' n in data.depth '>
+                                    &nbsp;&nbsp;&nbsp;&nbsp;
+                                </span>
+                                <img v-if="data.depth > 0" src='../../../frontend/src/assets/arrow2.png' width='10px' height='10px' border-left='solid 1px #979797' border-bottom='solid 1px #979797' position='absolute' top:='30px' left='132px' />                                
+                                <div v-if="data.user_id">{{ data.profile_image }}</div>
+                                <span v-if="data.user_id">{{ data.user_id }}</span>
+                                <span v-else-if="data.broker_id">{{ data.broker_id }}</span>
+                                <span>{{ data.created_at }}</span> 
+                            </div>
+                            <div>
+                                {{ data.content }}
+                            </div>
+                        </div>                
+                    </div>
+                </div>
+            </li>
+        </ul>
+    
+        <!-- 페이징 -->
+        <div class="row d-flex justify-content-center">
+            <nav aria-label="Page navigation example" style="text-align: center;">
+                <ul class="pagination-sm" id="pagination"></ul>
+            </nav>	
+        </div>
+        <!-- 
+        <div>
+            <div>
+                <div>
+                    <button>
+                        <svg width="12" height="12" viewBox="0 0 512 512">
+                            <path d="m380 439l-201-179 201-180c11-7 11-21 0-32-7-11-18-11-29-4l-219 197c-4 4-8 11-8 19 0 7 4 11 8 18l219 197c11 8 22 8 33 0 7-14 7-29-4-36z" transform="scale(1 1)"></path>
+                        </svg>
+                    </button>
+                    <ul>
+                        <li>
+                            <a>{{ pageNumber }}</a>
+                        </li>
+                    </ul>
+                    <button>
+                        <svg width="12" height="12" viewBox="0 0 512 512">
+                            <path d="m132 80l201 180-201 179c-11 7-11 22 0 33 7 11 22 11 33 0l219-198c4-3 7-11 7-18 0-7-3-11-7-18l-219-198c-11-3-26-3-33 8-11 7-11 21 0 32z" transform="scale(1 1)"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+        </div>
+         -->
+    </div>
+
+<script>
+    var login = JSON.parse(sessionStorage.getItem("login"));        // layout 합치기 전 테스트
+//    alert("세션 id : "+login.id);           // 9
+//    alert("userId : "+login.user_id);       // bbb
+//    alert("brokerID : "+login.broker_id);
+//    alert("auth : "+login.auth);            // 3
+
+    var vue = new Vue({
+        el:'#app',
+        data:{
+            id: '', 
+            UserCount: '',
+            content: '',
+            grade: 2,
+            profileImage: '',
+        //    createdAt: '',
+            best: 0,
+            good: 0,
+            fine: 0,
+            bad: 0,
+            del: '',
+            userId: login.user_id,
+            brokerId: login.broker_id,
+            auth: login.auth,
+            dataList: [],
+            isShow: false       // 작성자가 본인일 때 수정, 삭제 버튼 보임             
+        },
+        mounted:function () {
+            console.log('mounted');                        
+            this.login = JSON.parse(sessionStorage.getItem("login"));       // 테스트
+            this.getList();
+            this.getUserCount();
+            this.getBestCount();
+            this.getGoodCount();
+            this.getFineCount();
+            this.getBadCount();                     
+        },
+        methods:{   
+            // 글자수를 제한하자  
+            typing:function (e) {
+                this.max_length(e, 999, '#content');
+            },
+            max_length : function(e, len, id){
+            var val =  e.target.value;    			
+            if (val.length > len){
+                alert('리뷰는 1000자 까지만 입력 할 수 있습니다.');  
+                $(id).val(val.substring(0, len));
+                //(document.getElementById("content").value).substring(0, len);
+                }
+            },    
+            // 글쓰기  
+            addreview:function () {     
+                console.log("addreview()");
+                axios.get('http://localhost:8081/api/review/write', {
+                    params:{
+                        content: this.content,
+                        grade: this.grade,        // parseInt(this.grade)
+                        userId: this.userId,         //this.login.id
+                        brokerId: this.brokerId,
+                    //    createdAt: this.createdAt,
+                        auth: this.auth
+                    }
+                }).then(res => {
+                    console.log("addreview 통신성공");
+                    console.log(res.data);
+
+                    if(res.data == "YES"){
+                        alert("리뷰가 추가되었습니다.")                                                              
+                        location.href = "review.html";
+                    } else if(this.del != 0){
+                        alert("객관적인 평가를 위해 실제 해당 부동산에 문의한 사용자만 리뷰 작성이 가능합니다.")
+                        location.href = "review.html";
+                    }          
+                })
+            }, 
+            // 리뷰 리스트           
+            getList:function () {
+
+                // 글의 총 수
+                console.log("getList()");
+                axios.get('http://localhost:8081/api/review/getReviewCount', {
+                    params:{
+                        recordCountPerPage:10,
+						pageNumber: 1
+                    }
+                }).then(res => {
+                    console.log('getReviewCount 통신성공!');
+                    console.log(res.data);
+                    //this.reviewCount = res.data;
+                    loadPage( res.data );
+                })
+
+                // 글목록
+                axios.get('http://localhost:8081/api/review/getReviewList', {
+                    params:{
+                        recordCountPerPage:10,
+						pageNumber: 1
+                    }
+                }).then(res => {
+                    console.log('getReviewList 통신성공!');
+                    console.log(res.data);
+                    this.dataList = res.data;
+                })
+                .catch(function (error) {
+                    // handle error
+                    console.log("error: " + error);
+                })
+            },
+            // 리뷰에 대한 댓글달기(중개사)
+            addReply:function (id) {
+                console.log('addReply() id: ' + id);
+                
+                axios.get('http://localhost:8081/api/review/replyInsert', {
+                    params:{    
+                        id: this.id,                
+                    //    id: id,
+                        content: this.content,
+                        brokerId: this.broker_id
+                    }
+                })
+                .then(res => {
+                    console.log("addReply 통신성공");
+                    console.log(res.data);
+
+                    if(res.data == "YES"){
+                        alert("답글이 추가되었습니다.")                                                              
+                        location.href = "review.html";
+                    } else {
+                        alert("답글 추가 실패하였습니다.")
+                        location.href = "review.html";
+                    }
+                })
+            },
+            // 리뷰 수정
+            updateReply:function (id) {
+                console.log('updateReply()');
+                axios.get('http://localhost:8081/api/review/update', {
+                    params:{
+                        id: this.id,
+                    //    id: id,
+                        content: this.content,
+                        grade: this.grade,
+                        userId: this.userId,
+                        brokerId: this.brokerId
+                    }
+                })
+                .then(res => {
+                    console.log('update 통신성공!');
+                    console.log(res.data);
+
+                    if(res.data == "YES"){
+                        alert("리뷰가 수정되었습니다.")                                                              
+                        location.href = "review.html";
+                    } else {
+                        alert("리뷰 수정 실패하였습니다.")
+                        location.href = "review.html";
+                    }     
+                })
+            },
+            // 리뷰 삭제
+            deleteReply:function (id) {
+                console.log('deleteReply()');
+                axios.get('http://localhost:8081/api/review/delete', {
+                    params:{
+                        id: this.id
+                    //      id: id
+                    }
+                })
+                .then(res => {
+                    console.log('delete 통신성공!');
+                    console.log(res.data);
+
+                    if(res.data == "YES"){
+                        alert("리뷰 삭제 실패하였습니다.")                                                              
+                        location.href = "review.html";
+                    } else {
+                        alert("리뷰가 삭제되었습니다.")
+                        location.href = "review.html";
+                    }     
+
+                })
+            },
+            // 리뷰 수정, 삭제를 위한 디테일
+            detail:function (id) {
+                console.log('detail() id: ' + id);
+
+                axios.get('http://localhost:8081/api/review/getReview', { 
+                    params:{ 
+                    //    id: parameters.id
+                          id: id
+                    } 
+                }).then(res => {    	        
+                    console.log("getReview 통신성공");	   
+                    console.log(res.data);
+                    
+                    var rev = res.data;		// 받아온 데이터를 삽입
+                    this.id = rev.id;		// 답글용
+                    this.userId = rev.user_id;
+                    this.brokerId = rev.broker_id;                    
+                //    this.createdAt = rev.created_at;
+                    this.auth = rev.auth;
+                    this.content = rev.content;
+                    this.grade = rev.grade;
+                    
+                    console.log("this.id: " + id);
+
+                    if(this.userId == login.user_id){	// 수정, 삭제 버튼이 보이도록 한다		   	
+                        this.isShow = true;			  	
+                    }  
+                    if(this.brokerId == login.broker_id){
+                        this.isShow = true;
+                    }
+                })
+            },
+            // 사용자 총 리뷰 수
+            getUserCount:function () {
+                console.log('getUserCount()');
+                axios.get('http://localhost:8081/api/review/getUserCount')
+                .then(res => {
+                    console.log('User Review Count 통신성공!');
+                    console.log(res.data);
+                    this.UserCount = res.data;
+                })
+            },
+            // 리뷰 평가별 갯수
+            getBestCount:function () {
+                console.log('getBestCount()');
+                axios.get('http://localhost:8081/api/review/getBestCount')
+                .then(res => {
+                    console.log('Best 통신성공!');
+                    console.log(res.data);
+                    this.best = res.data;
+                })
+            },
+            getGoodCount:function () {
+                console.log('getGoodCount()');
+                axios.get('http://localhost:8081/api/review/getGoodCount')
+                .then(res => {
+                    console.log('Good 통신성공!');
+                    console.log(res.data);
+                    this.good = res.data;                    
+                })
+            },
+            getFineCount:function () {
+                console.log('getFineCount()');
+                axios.get('http://localhost:8081/api/review/getFineCount')
+                .then(res => {
+                    console.log('Fine 통신성공!');
+                    console.log(res.data);
+                    this.fine = res.data;                    
+                })
+            }, 
+            getBadCount:function () {
+                console.log('getBadCount()');
+                axios.get('http://localhost:8081/api/review/getBadCount')
+                .then(res => {
+                    console.log('Bad 통신성공!');
+                    console.log(res.data);
+                    this.bad = res.data;                    
+                })
+            }         
+        }
+    });
+
+    function loadPage( totalCount ){		
+		var pageSize = 10;
+		var pageNumber = 1;
+		
+		var totalPages = totalCount / pageSize;
+		if (totalCount%pageSize > 0) {
+			totalPages++;
+		}
+		
+		$('#pagination').twbsPagination('destroy'); // 페이징 갱신
+		
+		$('#pagination').twbsPagination({	
+        // startPage: 1,	   
+		   totalPages: totalPages,  // 전체 page블럭 수
+		   visiblePages: 10,  // 출력될 page 블럭수 상수로 지정해 줘도 되고, 변수로 지정해줘도 된다.
+		   first: '<span aria-hidden="true">«</span>',
+		   prev: "이전",
+		   next: "다음",   
+		   last: '<span aria-hidden="true">»</span>',
+		   onPageClick: function (event, page) {	// 페이지 번호를 클릭했을 때			   
+			//   alert("page:" + page);
+                            
+				axios.get('http://localhost:8081/api/review/getReviewList', {
+						params:{														
+							pageNumber: page
+						}
+					})
+					.then(res => {
+						vue.dataList = res.data;
+					}
+				)
+                .catch(function (error) {
+                    // handle error
+                    console.log("error: " + error);
+                })
+		   }
+		});		
+	}
+
+</script>
+
+
+</body>
+</html>

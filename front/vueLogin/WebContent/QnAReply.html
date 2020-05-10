@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- boot -->    
+<link rel='stylesheet' href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+<!-- Vue -->
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="https://unpkg.com/vue-router"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <title>QnAReply</title>
+</head>
+<body>
+    <h1>QnAReply</h1>
+    <div id="app" class="container">
+        <table class="table table-striped">
+            <col width="100px"><col width="200px"> 
+            <tr>
+                <th>작성자</th>
+                <td>
+                    <input v-model="adminId" size="50" readonly="readonly">
+                </td>
+  
+            </tr>	
+
+            </tr>	
+
+            <tr style="display: none;">
+                <th >문의 유형</th>
+                    <td>
+                        <select v-model="type">              
+                            <option >일반 문의</option>
+                            <option >허위매물 신고</option>
+                        </select>
+                    </td>
+            </tr>
+            
+            <tr>
+                <th>제목</th>
+                <td>
+                    <input v-model="title" size="50">		
+                </td>
+            </tr>
+            <tr>
+                <th>문의내용 답변</th>
+                <td>
+                    <textarea rows="10" cols="50" v-model="content"></textarea>		
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div style="text-align: center;">
+                        <button v-on:click="QnASubmit" style="width:150px;">전송하기</button>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <script>
+//라우터
+var router = new VueRouter({
+                mode: 'history',
+                routes: []
+            })
+//세션
+        let login = JSON.parse(sessionStorage.getItem("login"));
+      //  alert("세션 id : "+login.id);           // 5
+      //  alert("userId : "+login.user_id);       // aaa
+      //  alert("brokerID : "+login.broker_id); 
+       // alert("auth : "+login.auth);            // 3
+//user_id검증
+        new Vue({
+            router,
+            el: '#app',
+            data:{
+                id:'',
+                adminId:login.admin_id,
+                title:'',
+                content:'',
+                type:'일반 문의'
+            },
+// 답글 버튼 클릭
+            methods:{
+                QnASubmit:function(){
+                    let parameters = this.$route.query
+                    alert("답글 버튼 클릭");
+                    axios.get("http://localhost:8081/api/qna/replyQnAInsert",{
+                     params:{ // 보낼 데이터 
+                         id:parameters.id,
+                         title: this.title,
+                         content: this.content,
+                         type: this.type,
+                         adminId:this.adminId 
+                            }
+                        }).then(res => {
+                          //  alert("받아온 데이터");
+                           // alert(res.data);
+                          // console.log(this.id);
+
+                        //   let resData = res.data;
+                        // //   this.type = resData.type;
+
+                            if(res.data > 0){ //1이면 성공적 
+                                alert("답글을 작성하셨습니다.");
+                                location.href="QnA.html";
+                            }else{
+                                alert("작성되지 않았습니다.");
+                            }
+                        })
+                }
+            }
+
+        });
+    </script>
+    
+
+
+
+</body>
+</html>

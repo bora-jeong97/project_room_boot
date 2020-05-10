@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- bit.com.a.dao.BbsDao -->
+<mapper namespace="bit.com.a.user.UserDao">
+
+  <!-- now() = SYSOUT -->
+  <insert id="register" parameterType="bit.com.a.user.UserDto" useGeneratedKeys="true" keyProperty="id">
+INSERT INTO USER(user_id, user_password, name, email, age, phone_number, address,
+ auth, registered_at, registered_by)
+ VALUES(#{userId},#{userPassword}, #{name}, #{email}, #{age}, #{phoneNumber}, #{address}, 3, NOW(), 'ADMIN') 
+</insert>
+
+  <select id="idCheck" parameterType="bit.com.a.user.UserDto" resultType="java.lang.Integer">
+  select COUNT(*) from USER where user_id = #{userId}
+  </select>
+
+  <select id="getMemberList" resultType="bit.com.a.user.UserDto">
+select * from USER
+  </select>
+
+  <!-- 세션및 vuex에 담기 위한 용도 -->
+  <select id="login" parameterType="bit.com.a.user.UserDto" resultType="bit.com.a.user.UserDto">
+    SELECT * FROM USER WHERE user_id = #{userId} AND user_password = #{userPassword}
+    <!-- SELECT id, user_id, name, auth, profile_image FROM USER WHERE user_id = #{userId} AND user_password = #{userPassword} -->
+  </select>
+
+  <!-- 추후 비밀번호검색 -->
+  <select id="getInformation" parameterType="bit.com.a.user.UserDto" resultType="bit.com.a.user.UserDto">
+  SELECT * FROM USER WHERE id = #{id}
+  </select>
+
+  <update id="updateProfile" parameterType="bit.com.a.user.UserDto">
+    update USER set profile_image = #{profileImage} where user_id = #{userId}
+  </update>
+
+  <update id="updateUser" parameterType="bit.com.a.user.UserDto">
+    update USER set name = #{name} , user_id = #{userId} , phone_number = #{phoneNumber}
+    where id = #{id}
+  </update>
+
+
+</mapper>

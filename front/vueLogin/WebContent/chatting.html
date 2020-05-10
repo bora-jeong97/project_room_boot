@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+<script type="text/javascript">
+
+var wsUri = "ws://192.168.2.15:8081/webMysocket";
+var websocket;
+var output;
+
+function init() {
+    output = document.getElementById("output");
+}
+
+function send_message() {
+    //console.log("send_message() 호출");
+
+    websocket = new WebSocket(wsUri);
+
+    websocket.onopen = function(evt) {
+        //console.log("onopen");
+        onOpen(evt)
+    };
+    websocket.onmessage = function(evt) {
+        //console.log("onmessage");
+        onMessage(evt)
+    };
+    websocket.onerror = function(evt) {
+        console.log("onerror");
+        onError(evt)
+    };
+}
+
+function onOpen(evt) {
+    writeToScreen("Connected to Endpoint!");
+    var textID = document.getElementById("textID");
+    doSend(textID.value);
+}
+function onMessage(evt) {
+    writeToScreen("Message Received: " + evt.data);
+}
+function onError(evt) {
+    writeToScreen("ERROR: " + evt.data);
+}
+function doSend(message) {
+    writeToScreen("Message Send: " + message);
+    websocket.send(message);
+}
+function writeToScreen(message) {
+    var pre = document.createElement("p");
+    pre.style.wordWrap = "break-word";
+    pre.innerHTML = message;
+
+    output.appendChild(pre);
+}
+window.addEventListener("load", init, false);
+
+</script>
+
+<h1>소켓클라ㅣㅇ언트</h1>
+<div style="text-align: center;">
+    <form action="">
+        <input type="button" onclick="send_message()" value="Send">
+        <input id="textID" name="message" value="hello websocket">
+    </form>
+</div>
+
+<div id="output"></div>
+
+
+
+
+
+
+
+</body>
+</html>

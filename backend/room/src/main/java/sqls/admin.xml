@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- bit.com.a.admin.AdminDao -->
+<mapper namespace="bit.com.a.admin.AdminDao">
+    <select id="adminLogin" parameterType="bit.com.a.admin.AdminDto" resultType="bit.com.a.admin.AdminDto">
+        SELECT ID, ADMIN_ID, ADMIN_PASSWORD, NAME, REGISTERED_AT, UN_REGISTERED_AT, AUTH
+        FROM ADMIN_USER
+        WHERE ADMIN_ID=#{adminId} AND ADMIN_PASSWORD=#{adminPassword}
+    </select>
+
+    <update id="brokerPermission" parameterType="java.lang.Integer">
+        UPDATE BROKER
+        SET AUTH=4
+        WHERE ID=#{id}
+    </update>
+
+    <select id="getMemberList" resultType="bit.com.a.user.UserDto">
+        SELECT *
+        FROM USER
+    </select>
+
+
+    <!-- <resultMap id="" type=""></resultMap> -->
+
+    <select id="getAllBrokerList" parameterType="bit.com.a.admin.Param" resultType="bit.com.a.broker.BrokerDto">
+        SELECT *
+        FROM BROKER
+        WHERE 1=1
+        <if test="s_category != null and s_category != '' and s_keyword != null and s_keyword != ''">
+            <if test="s_category == 'brokerId'">
+                AND BROKER_ID LIKE CONCAT("%", #{s_keyword}, "%")
+            </if>
+            <if test="s_category == 'name'">
+                AND NAME LIKE CONCAT("%", #{s_keyword}, "%")
+            </if>
+        </if>
+        ORDER BY REGISTERED_AT DESC
+        LIMIT #{start}, 5;
+    </select>
+
+    <select id="getAllBrokerCount" parameterType="bit.com.a.admin.Param" resultType="java.lang.Integer">
+        SELECT IFNULL(COUNT(*), 0) AS CNT
+        FROM BROKER
+        WHERE 1=1
+        <if test="s_category != null and s_category != '' and s_keyword != null and s_keyword != ''">
+            <if test="s_category == 'brokerId'">
+                AND BROKER_ID LIKE CONCAT("%", #{s_keyword}, "%")
+            </if>
+            <if test="s_category == 'name'">
+                AND NAME LIKE CONCAT("%", #{s_keyword}, "%")
+            </if>
+        </if>
+    </select>
+
+    <select id="getBrokerDetail" parameterType="java.lang.Integer" resultType="bit.com.a.broker.BrokerDto">
+        SELECT *
+        FROM BROKER
+        WHERE ID=#{id}
+    </select>
+
+    <update id="brokerForcedDeletion" parameterType="java.lang.Integer">
+        UPDATE BROKER
+        SET AUTH=7, UN_REGISTERED_AT=NOW(), UN_REGISTERED_BY="관리자"
+        WHERE ID=#{id}
+    </update>
+
+    <update id="brokerOutOfPermission" parameterType="java.lang.Integer">
+        UPDATE BROKER
+        SET AUTH=5
+        WHERE ID=#{id}
+    </update>
+
+    <select id="getUserList" parameterType="bit.com.a.admin.Param" resultType="bit.com.a.user.UserDto">
+        SELECT *
+        FROM USER
+        WHERE 1=1
+        <if test="s_category != null and s_category != '' and s_keyword != null and s_keyword != ''">
+            <if test="s_category == 'userId'">
+                AND USER_ID LIKE CONCAT("%", #{s_keyword}, "%")
+            </if>
+            <if test="s_category == 'name'">
+                AND NAME LIKE CONCAT("%", #{s_keyword}, "%")
+            </if>
+        </if>
+        ORDER BY REGISTERED_AT DESC
+        LIMIT #{start}, 5;
+    </select>
+
+    <select id="getUserCount" parameterType="bit.com.a.admin.Param" resultType="java.lang.Integer">
+        SELECT IFNULL(COUNT(*), 0) AS CNT
+        FROM USER
+        WHERE 1=1
+        <if test="s_category != null and s_category != '' and s_keyword != null and s_keyword != ''">
+            <if test="s_category == 'userId'">
+                AND USER_ID LIKE CONCAT("%", #{s_keyword}, "%")
+            </if>
+            <if test="s_category == 'name'">
+                AND NAME LIKE CONCAT("%", #{s_keyword}, "%")
+            </if>
+        </if>
+    </select>
+
+    <select id="notPermittedBrokerCount" parameterType="bit.com.a.admin.Param" resultType="java.lang.Integer">
+        SELECT IFNULL(COUNT(*), 0) AS CNT
+        FROM BROKER
+        WHERE AUTH=5
+        <if test="s_category != null and s_category != '' and s_keyword != null and s_keyword != ''">
+            <if test="s_category == 'brokerId'">
+                AND BROKER_ID LIKE CONCAT("%", #{s_keyword}, "%")
+            </if>
+            <if test="s_category == 'name'">
+                AND NAME LIKE CONCAT("%", #{s_keyword}, "%")
+            </if>
+        </if>
+    </select>
+
+    <select id="notPermittedBrokerList" parameterType="bit.com.a.admin.Param" resultType="bit.com.a.broker.BrokerDto">
+        SELECT *
+        FROM BROKER
+        WHERE AUTH=5
+        <if test="s_category != null and s_category != '' and s_keyword != null and s_keyword != ''">
+            <if test="s_category == 'brokerId'">
+                AND BROKER_ID LIKE CONCAT("%", #{s_keyword}, "%")
+            </if>
+            <if test="s_category == 'name'">
+                AND NAME LIKE CONCAT("%", #{s_keyword}, "%")
+            </if>
+        </if>
+        ORDER BY REGISTERED_AT DESC
+        LIMIT #{start}, 5;
+    </select>
+
+    <select id="getUserDetail" parameterType="java.lang.Integer" resultType="bit.com.a.user.UserDto">
+        SELECT *
+        FROM USER
+        WHERE ID=#{id}
+    </select>
+
+    <update id="userForcedDeletion" parameterType="java.lang.Integer">
+        UPDATE USER
+        SET AUTH=6, UN_REGISTERED_AT=NOW(), UN_REGISTERED_BY="관리자"
+        WHERE ID=#{id}
+    </update>
+
+    <select id="getGoodbyeBrokerCount" parameterType="bit.com.a.admin.Param" resultType="java.lang.Integer">
+        SELECT IFNULL(COUNT(*), 0) AS CNT
+        FROM BROKER
+        WHERE AUTH=7
+        <if test="s_category != null and s_category != '' and s_keyword != null and s_keyword != ''">
+            <if test="s_category == 'brokerId'">
+                AND BROKER_ID LIKE CONCAT("%", #{s_keyword}, "%")
+            </if>
+            <if test="s_category == 'name'">
+                AND NAME LIKE CONCAT("%", #{s_keyword}, "%")
+            </if>
+        </if>
+    </select>
+
+    <select id="getGoodByeBrokerList" parameterType="bit.com.a.admin.Param" resultType="bit.com.a.broker.BrokerDto">
+        SELECT *
+        FROM BROKER
+        WHERE AUTH=7
+        <if test="s_category != null and s_category != '' and s_keyword != null and s_keyword != ''">
+            <if test="s_category == 'brokerId'">
+                AND BROKER_ID LIKE CONCAT("%", #{s_keyword}, "%")
+            </if>
+            <if test="s_category == 'name'">
+                AND NAME LIKE CONCAT("%", #{s_keyword}, "%")
+            </if>
+        </if>
+        ORDER BY REGISTERED_AT DESC
+        LIMIT #{start}, 5;
+    </select>
+
+    <update id="userResurrection" parameterType="java.lang.Integer">
+        UPDATE USER
+        SET AUTH=3, UN_REGISTERED_AT=null, UN_REGISTERED_BY=null
+        WHERE ID=#{id}
+    </update>
+
+    <update id="brokerResurrection" parameterType="java.lang.Integer">
+        UPDATE BROKER
+        SET AUTH=5, UN_REGISTERED_AT=null, UN_REGISTERED_BY=null
+        WHERE ID=#{id}
+    </update>
+
+    <select id="getRegisterCount" resultType="bit.com.a.admin.RegiCountParam">
+        SELECT 	IFNULL(COUNT(case when TIMESTAMPDIFF(DAY, SUBSTR(registered_at, 1, 10), SUBSTR(NOW(), 1, 10)) = 0 then 1 end), 0) AS todayRegisterCount,
+		        IFNULL(COUNT(case when TIMESTAMPDIFF(DAY, SUBSTR(registered_at, 1, 10), SUBSTR(NOW(), 1, 10)) = 1 then 1 end), 0) AS yesterdayRegisterCount
+        FROM USER;
+    </select>
+
+    <!-- 관리자 resultMap 정보들을 모두 받아온다. -->
+    <resultMap id="adminMap" type="bit.com.a.admin.AdminDto">
+        <result column="id" property="id" />
+        <result column="admin_id" property="adminId" />
+        <result column="admin_password" property="adminPassword" />
+        <result column="name" property="name" />
+        <result column="registered_at" property="registered_at" />
+        <result column="auth" property="auth" />
+        <!--  -->
+
+        <!-- <association property="memberCount" column="id" select="getUserCount"></association> -->
+        <!-- propety는 dto의 property coulm은 인자로 받을값(brokerId=#{id}등) select는 말그대로 select문의 id를 가져온다  -->
+        <!-- 방의갯수 -->
+        <association property="roomCount" column="id" select="roomCount"></association>
+        <!-- 유저의 수 -->
+        <association property="userCount" column="id" select="userCount"></association>
+        <!-- 브로커의 수 -->
+        <association property="brokerCount" column="id" select="brokerCount"></association>
+        <!-- 일간 수익 -->
+        <association property="todayRevenue" column="id" select="getTodayRevenue"></association>
+        <!-- 누적 수익  -->
+        <association property="allRevenue" column="id" select="getAllRevenue"></association>
+        <!-- 요일별 방의 개수 -->
+        <collection property="dayOfRoomList" column="id" javaType="java.util.ArrayList" select="getRoomCount"></collection>
+        <!-- broker별 수익 가져오기 -->
+        <collection property="paymentChart" column="id" javaType="java.util.ArrayList" select="paymentChart"></collection>
+        <!--  -->
+        <collection property="dayOfMonth" column="id" javaType="java.util.ArrayList" select="getPaymentPerWeekday"></collection>
+        <collection property="vipList" column="id" javaType="java.util.ArrayList" select="getVIPlist"></collection>
+        <!-- broker들의 리스트 + 결제정보(join안의 join)  -->
+        <!-- <collection property="brokerList" column="id" javaType="java.util.ArrayList" select="getBrokerInformation"></collection> -->
+        <!-- <collection property="dayOfMonth" column="id" javaType="java.util.ArrayList" select="getDayOfMonth"></collection>
+        <collection property="vipList" column="id" javaType="java.util.ArrayList" select="getVipList"></collection> -->
+    </resultMap>
+
+
+    <!-- 방의 수 -->
+    <select id="roomCount" resultType="int">
+        select count(id) as room_count from ROOM
+    </select>
+
+    <!-- 유저들의 수 -->
+    <select id="userCount" resultType="int">
+        select count(id) as user_count from USER
+    </select>
+
+    <!-- 브로커들의 수 -->
+    <select id="brokerCount" resultType="int">
+        select count(id) as broker_count from BROKER
+    </select>
+
+
+    <!-- 오늘의 수익 -->
+    <select id="getTodayRevenue" resultType="String">
+        select sum(payment) as today_revenue from payment where date_format(payment_at, "%Y-%m-%d") = CURDATE()       
+    </select>
+
+
+    <!-- 누적 수익 -->
+    <select id="getAllRevenue" resultType="String">
+        select sum(payment) as all_revenue from payment
+    </select>
+
+    <!-- 차트를 위한 group 화 -->
+    <select id="paymentChart" resultType="bit.com.a.payment.PaymentDto">
+        SELECT sum(payment) as paymentSum, broker_id FROM payment group by broker_id
+    </select>
+
+    <!-- 요일별 방이 올라오는 갯수 -->
+    <select id="getRoomCount" resultType="bit.com.a.admin.DateParam">
+        SELECT  IFNULL(COUNT(case when TIMESTAMPDIFF(DAY, SUBSTR(created_at, 1, 10), SUBSTR(NOW(), 1, 10)) = 0 then 1 end), 0) AS TIMESTAMPDIFF0,
+                IFNULL(COUNT(case when TIMESTAMPDIFF(DAY, SUBSTR(created_at, 1, 10), SUBSTR(NOW(), 1, 10)) = 1 then 1 end), 0) AS TIMESTAMPDIFF1,
+                IFNULL(COUNT(case when TIMESTAMPDIFF(DAY, SUBSTR(created_at, 1, 10), SUBSTR(NOW(), 1, 10)) = 2 then 1 end), 0) AS TIMESTAMPDIFF2,
+                IFNULL(COUNT(case when TIMESTAMPDIFF(DAY, SUBSTR(created_at, 1, 10), SUBSTR(NOW(), 1, 10)) = 3 then 1 end), 0) AS TIMESTAMPDIFF3,
+                IFNULL(COUNT(case when TIMESTAMPDIFF(DAY, SUBSTR(created_at, 1, 10), SUBSTR(NOW(), 1, 10)) = 4 then 1 end), 0) AS TIMESTAMPDIFF4,
+                IFNULL(COUNT(case when TIMESTAMPDIFF(DAY, SUBSTR(created_at, 1, 10), SUBSTR(NOW(), 1, 10)) = 5 then 1 end), 0) AS TIMESTAMPDIFF5,
+                IFNULL(COUNT(case when TIMESTAMPDIFF(DAY, SUBSTR(created_at, 1, 10), SUBSTR(NOW(), 1, 10)) = 6 then 1 end), 0) AS TIMESTAMPDIFF6
+        FROM ROOM;
+    </select>
+
+    <!-- 요일별 매출현황  -->
+    <select id="getPaymentPerWeekday" resultType="bit.com.a.admin.WeekPayParam">
+        SELECT case weekday(SUBSTR(payment_at, 1, 10))
+                when '0' then '월요일'
+                when '1' then '화요일'
+                when '2' then '수요일'
+                when '3' then '목요일'
+                when '4' then '금요일'
+                when '5' then '토요일'
+                when '6' then '일요일' END AS week, SUM(payment) AS payment
+        FROM payment
+        GROUP BY case weekday(SUBSTR(payment_at, 1, 10))
+                when '0' then '월요일'
+                when '1' then '화요일'
+                when '2' then '수요일'
+                when '3' then '목요일'
+                when '4' then '금요일'
+                when '5' then '토요일'
+                when '6' then '일요일' END;
+    </select>
+
+    <select id="getVIPlist" resultType="bit.com.a.admin.VIPlistParam">
+        SELECT SUM(payment) as payment, broker_id as id
+        FROM room.payment
+        GROUP BY broker_id
+        ORDER BY SUM(payment) DESC
+        LIMIT 0, 5;
+    </select>
+
+
+    <!-- 브로커 -> payment join활용하기 -->
+    <resultMap id="brokerMap" type="bit.com.a.broker.BrokerDto">
+        <result column="id" property="id" />
+        <result column="broker_id" property="brokerId" />
+        <result column="broker_password" property="brokerPassword" />
+        <result column="name" property="name" />
+        <result column="email" property="email" />
+        <result column="age" property="age" />
+        <result column="phone_number" property="phoneNumber" />
+        <result column="certification" property="certification" />
+        <result column="profile_image" property="profileImage" />
+        <result column="write_count" property="writeCount" />
+        <result column="registered_at" property="registeredAt" />
+        <result column="registered_by" property="registeredBy" />
+        <collection property="paymentList" column="id" javaType="java.util.ArrayList" select="getPaymentList"></collection>
+        <!-- 프로필 정보 받아오기 -->
+
+    </resultMap>
+
+
+    <!-- brokerMap에서 활용하기위한 join -->
+    <!-- broker id를 통해 payment type을 가져온다 -->
+    <select id="getPaymentList" resultType="bit.com.a.payment.PaymentDto">
+        select * from payment where broker_id = #{id}
+    </select>
+
+    <!-- brokerMap을 통해 broker + payment 정보 가져오기  -->
+    <select id="getBrokerInformation" resultMap="brokerMap">
+        select * from BROKER
+    </select>
+
+    <!-- id가 admin인 정보 가져오기(adminMap 내의 모든 정보들을 같이 출력해서 받아온다)  -->
+    <select id="getAll" resultMap="adminMap">
+        select * from ADMIN_USER where id = 2
+    </select>
+
+
+    <resultMap id="userMap" type="bit.com.a.user.UserDto">
+        <result column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="user_password" property="userPassword" />
+        <result column="name" property="name" />
+        <result column="email" property="email" />
+        <result column="age" property="age" />
+        <result column="phone_number" property="phoneNumber" />
+        <result column="profile_image" property="profileImage" />
+        <result column="write_count" property="writeCount" />
+        <result column="registered_at" property="registeredAt" />
+        <result column="registered_by" property="registeredBy" />
+        <collection property="paymentList" column="id" javaType="java.util.ArrayList" select="getPaymentList"></collection>
+        <!-- 프로필 정보 받아오기 -->
+    </resultMap>
+
+</mapper>

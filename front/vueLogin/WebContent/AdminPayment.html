@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    
+    <!-- vue -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+    
+
+    <title>PaymentAfter</title>
+</head>
+<body>
+
+<h2>AdminPayment</h2>
+    <div id="app" class="container">
+
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>번호</th>
+                    <th>결제 금액</th>
+                    <th>brokerId</th>
+                    <th>결제일</th>
+                </tr>	
+            </thead>
+                
+            <tbody v-for="(data, index) in dataList">
+                <tr>
+                    <!-- //번호 -->
+                    <td>{{ data.id }}</td> 
+                    <!-- //결제금액 -->
+                    <td >
+                        {{data.payment}}
+                    </td>
+                    <td >
+                        {{data.broker_id}}
+                    </td>
+                    <td >
+                        {{data.payment_at}}
+                    </td>
+            
+                </tr>	
+            </tbody>
+        </table>
+
+
+    </div>
+
+    <script>
+    //    let login = JSON.parse(sessionStorage.getItem("login"));
+
+
+        
+      let v =   new Vue({
+            el: '#app',
+            data: {
+                dataList:[]
+            },
+            mounted: function(){
+
+              axios.get("http://localhost:8081/api/payment/getPaymentAdmin",{
+              }).then(res=>{
+                  alert("getPaymentAdmin 통신성공");
+                  console.log(JSON.stringify(res.data));
+               //   brokerId=this.brokerId,
+               this.dataList = res.data;
+           //    let pram = res.data;
+
+           
+
+
+
+              })
+            }
+        })
+
+  
+    </script>
+
+</body>
+</html>

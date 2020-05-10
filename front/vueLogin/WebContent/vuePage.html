@@ -1,0 +1,43 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/vuejs-paginate@latest"></script>
+    <!-- or use the specify version -->
+    <script src="https://unpkg.com/vuejs-paginate@0.9.0"></script>
+    <style>
+        #app {}
+        
+        .pagination {
+            display: flex;
+        }
+        
+        .page-item {
+            margin-left: 50px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+
+    </div>
+    <script>
+        Vue.component('paginate', VuejsPaginate)
+
+        new Vue({
+            el: '#app',
+
+            methods: {
+                clickCallback: function(page) {
+                    console.log(page)
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

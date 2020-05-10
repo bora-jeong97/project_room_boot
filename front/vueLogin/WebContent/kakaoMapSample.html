@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>KaKao Map Api TestSample</title>
+        <style>
+            .area {
+                position: absolute;
+                background: #fff;
+                border: 1px solid #888;
+                border-radius: 3px;
+                font-size: 12px;
+                top: -5px;
+                left: 15px;
+                padding:2px;
+            }
+            
+            .info {
+                font-size: 12px;
+                padding: 5px;
+            }
+            .info .title {
+                font-weight: bold;
+            }
+        </style>
+
+        <style>
+            .label * {display: inline-block;vertical-align: top;}
+            .label .left {background: url("https://t1.daumcdn.net/localimg/localimages/07/2011/map/storeview/tip_l.png") no-repeat;display: inline-block;height: 24px;overflow: hidden;vertical-align: top;width: 7px;}
+            .label .center {background: url(https://t1.daumcdn.net/localimg/localimages/07/2011/map/storeview/tip_bg.png) repeat-x;display: inline-block;height: 24px;font-size: 12px;line-height: 24px;}
+            .label .right {background: url("https://t1.daumcdn.net/localimg/localimages/07/2011/map/storeview/tip_r.png") -1px 0  no-repeat;display: inline-block;height: 24px;overflow: hidden;width: 6px;}
+        </style>
+
+        <style>
+            .search-item-wrapper {
+            margin-top: 40px;
+            display: inline-block;
+            position: relative;
+            top: -20px;
+            cursor: pointer;
+            z-index: 9;
+            border-radius: 34px;
+            }
+
+            .search-item {
+            display: inline-block;
+            min-width: 40px;
+            height: 20px;
+            color: rgb(255, 255, 255);
+            font-size: 17px;
+            line-height: 20px;
+            text-align: center;
+            white-space: nowrap;
+            background-color: rgb(35, 128, 255);
+            position: relative;
+            left: 3px;
+            z-index: 1;
+            padding: 6px 13px 8px;
+            border-width: 1px;
+            border-style: solid;
+            border-color: rgb(25, 119, 247);
+            border-image: initial;
+            border-radius: 40px;
+            }
+
+            .search-item:hover {
+            background-color: #fff;
+            color: #1374f8;
+            z-index: -99;
+            }
+
+            .search-address {
+            display: inline-block;
+            min-width: 44px;
+            color: rgb(68, 68, 68);
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 20px;
+            white-space: nowrap;
+            border-top-right-radius: 32px;
+            border-bottom-right-radius: 32px;
+            box-shadow: rgba(0, 0, 0, 0.35) 0px 0px 2px 0px;
+            background-color: rgb(255, 255, 255);
+            pointer-events: none;
+            position: relative;
+            top: -1px;
+            left: -7px;
+            padding: 6px 12px 6px 15px;
+            }
+        </style>
+
+
+        <script src="https://unpkg.com/vue/dist/vue.js"></script>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+        <!-- 쳇. 예시코드에서는 Jquery를 이용한 호출을 하고 있으니 일시적으로 어쩔 수 없지만 사용하기로 함.-->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <!-- 카카오 맵 스크립트 선언. 이는 무조건 맵 부분 이전에 상단에 선언되어야 함.-->
+        <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=e2fa7821c2e4e5ece4abb3628054da64&libraries=services,clusterer,drawing"></script> 
+        <!--
+            clusterer: 마커를 클러스터링 할 수 있는 클러스터러 라이브러리 입니다.
+            services: 장소 검색 과 주소-좌표 변환 을 할 수 있는 services 라이브러리 입니다.
+            drawing: 지도 위에 마커와 그래픽스 객체를 쉽게 그릴 수 있게 그리기 모드를 지원하는 drawing 라이브러리 입니다.
+        -->
+    </head>
+
+
+    <body>
+        <p>KaKao Map Api TestSample</p>
+        <div id="map" style="width:80%;height:600px;"></div>
+        <p id="result">현재 지도 레벨은 8 입니다</p>
+        <p id="result2">현재 지도의 중심 좌표는 37.566826, 126.9786567 입니다.</p>
+        <p id="result3">영역좌표는 이동 후에 갱신됩니다.</p>
+
+        <div id="app">
+            <!-- <h1>{{ message }}</h1> -->
+    </body>
+
+  
+
+    <script> //맵 생성 및 초기 설정.
+        var mapContainer = document.getElementById('map'); // 지도를 표시할 div 
+        var mapOption = { 
+            center: new kakao.maps.LatLng(37.566826, 126.9786567), // 지도의 중심좌표
+            level: 8, // 지도의 초기 레벨
+        };
+
+        var map = new kakao.maps.Map(mapContainer, mapOption),
+        customOverlay = [ ]; //new kakao.maps.CustomOverlay({}),
+        var areas = [ ];
+        infowindow = new kakao.maps.InfoWindow({removable: true});
+        map.setMinLevel(2);     //확대 최소 레벨 2
+        map.setMaxLevel(10);    //확대 최대 레벨 10
+
+        // 마커 클러스터러를 생성합니다 
+        var clusterer = new kakao.maps.MarkerClusterer({
+            map: map, // 마커들을 클러스터로 관리하고 표시할 지도 객체 
+            averageCenter: true, // 클러스터에 포함된 마커들의 평균 위치를 클러스터 마커 위치로 설정 
+            minLevel: 2, // 클러스터 할 최소 지도 레벨 
+            gridSize: 35,
+            disableClickZoom: true,
+            minClusterSize: 1
+        });
+
+        //변수값 초기 세팅.
+        // 지도 중심좌표를 얻어옵니다 
+        var latlng = map.getCenter();
+        // 지도의 현재 레벨을 얻어옵니다.
+        var level = map.getLevel();
+        // 지도 영역정보를 얻어옵니다 
+        var bounds = map.getBounds();
+        // 영역정보의 남서쪽 정보를 얻어옵니다 
+        var swLatlng = bounds.getSouthWest();
+        // 영역정보의 북동쪽 정보를 얻어옵니다 
+        var neLatlng = bounds.getNorthEast();
+    </script>
+
+    <script>    //json 데이터 로드
+        axios.post("http://localhost:8081/api/search/getJson").then(function (response) { 
+        if(response != null) {
+            console.log(response);
+            jsonDongPath = response;
+        }else {
+            alert("json is null!");
+        }
+        }.bind(this)).catch(function (e) {
+            console.error(e)
+            alert("JSON DATA LOAD ERROR!");
+        })
+    </script>
+
+
+
+    <script> //지도 확대 축소 감지
+        kakao.maps.event.addListener(map, 'zoom_changed', function() {        
+            mapChange(); 
+        });
+    </script>
+
+    <script>  //지도 이동 감지
+        kakao.maps.event.addListener(map, 'dragend', function() {        
+            mapChange();
+        });
+    </script>
+
+    <script> //변화 감지 최종 처리 변수.
+        function mapChange() {
+            reSetting();     //변수 재세팅
+            let mapLevelTemp = level;   //임시 변수 선언.
+            let mapSwTemp = swLatlng;
+            let mapNeTemp = neLatlng;
+
+
+            setTimeout(function() {
+                if((level == mapLevelTemp) && (swLatlng == mapSwTemp) && (neLatlng == mapNeTemp)) { //0.75초동안 변화가 없는가?
+                    //alert("변화 없음! 확인!");
+                    customOverlay.forEach(function (overlay) { overlay.setMap(null); }); //오버레이 초기화.
+                    customOverlay.length = 0 // 오버레이 배열 초기화
+                    areas.forEach(function (area) { area.setMap(null); });
+                    areas.length = 0;
+
+                    if(level >= 9) {   //시단위
+                        let params = new URLSearchParams();
+
+                        params.append('swLat', swLatlng.getLat());
+                        params.append('swLng', swLatlng.getLng());
+                        params.append('neLat', neLatlng.getLat());
+                        params.append('neLng', neLatlng.getLng());
+
+                        axios.post("http://localhost:8081/api/search/getSi", params).then(function (response) { 
+                            //alert("통신 성공");
+                            console.log(response);
+                            for(i = 0; i < response.data.length; i++) {
+                                //alert(response.data[i].name)
+                                position = new kakao.maps.LatLng(response.data[i].latitude, response.data[i].longitude);
+                                //content = '<div class ="label"><span class="left"></span><span class="center">' + response.data[i].name + '</span><span class="right"></span></div>';
+                                
+                                content =   '<div class="search-item-wrapper">'
+                                        +   '<div class="search-item">' + 0 + '</div>'
+                                        +   '<div class="search-address">' + response.data[i].name + '</div>'
+                                        +   '</div>'
+                                let customOverlayTemp = new kakao.maps.CustomOverlay({
+                                position: position,
+                                content: content
+                                });
+
+                                customOverlay.push(customOverlayTemp);
+                            }
+                            customOverlay.forEach(function (overlay) { overlay.setMap(map); });
+                        }.bind(this)).catch(function (e) {
+                            console.error(e)
+                        })
+
+                    }else if(level >= 7) {  //구단위
+                        let params = new URLSearchParams();
+
+                        params.append('swLat', swLatlng.getLat());
+                        params.append('swLng', swLatlng.getLng());
+                        params.append('neLat', neLatlng.getLat());
+                        params.append('neLng', neLatlng.getLng());
+
+                        axios.post("http://localhost:8081/api/search/getGu", params).then(function (response) { 
+                            //alert("통신 성공");
+                            console.log(response);
+                            for(i = 0; i < response.data.length; i++) {
+                                //alert(response.data[i].name)
+                                position = new kakao.maps.LatLng(response.data[i].latitude, response.data[i].longitude);
+                                //content = '<div class ="label"><span class="left"></span><span class="center">' + response.data[i].name + '</span><span class="right"></span></div>';
+                                
+                                content =   '<div class="search-item-wrapper">'
+                                        +   '<div class="search-item">' + 0 + '</div>'
+                                        +   '<div class="search-address">' + response.data[i].name + '</div>'
+                                        +   '</div>'
+                                let customOverlayTemp = new kakao.maps.CustomOverlay({
+                                position: position,
+                                content: content
+                                });
+
+                                customOverlay.push(customOverlayTemp);
+                            }
+                            customOverlay.forEach(function (overlay) { overlay.setMap(map); });
+                        }.bind(this)).catch(function (e) {
+                            console.error(e)
+                        })
+                    }else if(level >= 4) {  //동단위
+                        let params = new URLSearchParams();
+
+                        params.append('swLat', swLatlng.getLat());
+                        params.append('swLng', swLatlng.getLng());
+                        params.append('neLat', neLatlng.getLat());
+                        params.append('neLng', neLatlng.getLng());
+
+                        axios.post("http://localhost:8081/api/search/getDong", params).then(function (response) { 
+                            //alert("통신 성공");
+                            console.log(response);
+                            for(i = 0; i < response.data.length; i++) {
+                                //alert(response.data[i].name)
+                                position = new kakao.maps.LatLng(response.data[i].latitude, response.data[i].longitude);
+                                //content = '<div class ="label">'
+                                //    + '<span class="left"></span>'
+                                //    + '<span class="center" id="' + response.data[i].name + '" onmouseover=dongPrint("' + response.data[i].name + '") onmouseout=dongPrintCancel("' + response.data[i].name + '")>' + response.data[i].name + '</span>'
+                                //    + '<span class="right"></span></div>';
+                                
+                                content =   '<div class="search-item-wrapper id="' + response.data[i].name + '" onmouseover=dongPrint("' + response.data[i].name + '") onmouseout=dongPrintCancel("' + response.data[i].name + '")>'
+                                        +   '<div class="search-item">' + 0 + '</div>'
+                                        +   '<div class="search-address">' + response.data[i].name + '</div>'
+                                        +   '</div>'
+                                let customOverlayTemp = new kakao.maps.CustomOverlay({
+                                position: position,
+                                content: content
+                                });
+
+                                customOverlay.push(customOverlayTemp);
+                            }
+                            customOverlay.forEach(function (overlay) { overlay.setMap(map); });
+                        }.bind(this)).catch(function (e) {
+                            console.error(e)
+                        })
+                    }else if(level >= 2) {  //클러스터
+                        /*
+                        let position = new kakao.maps.LatLng(37.566826, 126.9786567);
+                        let content = '<div class ="label"><span class="left"></span><span class="center">카카오!</span><span class="right"></span></div>';
+                        
+                        customOverlay = new kakao.maps.CustomOverlay({
+                            position: position,
+                            content: content
+                        });
+                        
+                        customOverlay.setMap(map);
+                        */
+                    }else {
+                        alert("왜 여길로 왔는가.");
+                        //예기치 못할때 여기로 들어옴.
+                    }
+
+                    var message = '현재 지도 레벨은 ' + level + ' 입니다';
+                    var resultDiv = document.getElementById('result');  
+                    resultDiv.innerHTML = message;
+                    // 지도 중심좌표를 얻어옵니다 
+                    var latlng = map.getCenter(); 
+                    var message = '변경된 지도 중심좌표는 ' + latlng.getLat() + ' 이고, ';
+                    message += '경도는 ' + latlng.getLng() + ' 입니다';
+                    var resultDiv2 = document.getElementById('result2');  
+                    resultDiv2.innerHTML = message;
+                    var message = '<p>영역좌표는 남서쪽 위도, 경도는  ' + swLatlng.toString() + '이고 <br>'; 
+                    message += '북동쪽 위도, 경도는  ' + neLatlng.toString() + '입니다 </p>'; 
+                    var resultDiv3 = document.getElementById('result3');   
+                    resultDiv3.innerHTML = message;
+                    var message = '변경된 지도 중심좌표는 ' + latlng.getLat() + ' 이고, ';
+                    message += '경도는 ' + latlng.getLng() + ' 입니다';
+                    var resultDiv2 = document.getElementById('result2');  
+                    resultDiv2.innerHTML = message;
+                    var message = '<p>영역좌표는 남서쪽 위도, 경도는  ' + swLatlng.toString() + '이고 <br>'; 
+                    message += '북동쪽 위도, 경도는  ' + neLatlng.toString() + '입니다 </p>'; 
+                    var resultDiv3 = document.getElementById('result3');   
+                    resultDiv3.innerHTML = message;
+                }
+            }, 750);   //750ms  
+        }
+    </script>
+
+
+
+    <script> //유틸 함수
+        function reSetting() {  //값 재 설정
+            latlng = map.getCenter();
+            level = map.getLevel();
+            bounds = map.getBounds();
+            swLatlng = bounds.getSouthWest();
+            neLatlng = bounds.getNorthEast();
+        }
+
+        function dongPrint(value) { //마우스 올릴경우 동에서 다각형 표시.
+            //value에는 동 값이 넘어옴.
+            let temp = document.getElementById(value);
+
+            console.log(jsonDongPath.data[value]);
+            
+            let linePath = [ ];
+            areas.forEach(function (area) { area.setMap(null); }); //오버레이 초기화.
+            areas.length = 0 // 오버레이 배열 초기화
+
+            if(jsonDongPath.data[value].type == "single") {
+                for(var joPath in jsonDongPath.data[value].path) { //joPath : 0~ path의 최대 갯수 
+                    linePath.push(new kakao.maps.LatLng(jsonDongPath.data[value].path[joPath][1] , jsonDongPath.data[value].path[joPath][0]));
+                }
+
+                let polygon = new kakao.maps.Polygon({
+                    map: map, // 다각형을 표시할 지도 객체
+                    path: linePath,
+                    strokeWeight: 2,
+                    strokeColor: '#004c80',
+                    strokeOpacity: 0.8,
+                    fillColor: '#fff',
+                    fillOpacity: 0.7 
+                });
+                areas.push(polygon);
+
+            }else if(jsonDongPath.data[value].type == "multi") {
+                for(var joPath in jsonDongPath.data[value].path) { //joPath : 0~ path의 최대 갯수 
+                    for(var joPath2 in jsonDongPath.data[value].path[joPath]) {
+                        linePath.push(new kakao.maps.LatLng(jsonDongPath.data[value].path[joPath][joPath2][1] , jsonDongPath.data[value].path[joPath][joPath2][0]));
+                    }
+                    let polygon = new kakao.maps.Polygon({
+                    map: map, // 다각형을 표시할 지도 객체
+                    path: linePath,
+                    strokeWeight: 2,
+                    strokeColor: '#004c80',
+                    strokeOpacity: 0.8,
+                    fillColor: '#fff',
+                    fillOpacity: 0.7 
+                    });
+                    areas.push(polygon);
+                }
+            }else {
+                console("다각형 에러. 이쪽으로 넘어오면 안됨.");
+            }
+            areas.forEach(function (area) { area.setMap(map); });
+        }
+        function dongPrintCancel(value) {
+            //value에는 동 값이 넘어옴.
+            let temp = document.getElementById(value);
+            areas.forEach(function (area) { area.setMap(null); }); //오버레이 초기화.
+            areas.length = 0; // 오버레이 배열 초기화
+        }
+    </script> 
+</html>
+
+
+
+

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+
+    <style media="screen">
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        
+        #box {
+            width: 900px;
+            height: 350px;
+            /* background-color: red; */
+            position: relative;
+        }
+        
+        #slide {
+            width: 500px;
+            height: 250px;
+            top: 50px;
+            left: 190px;
+            overflow: hidden;
+            /*영역 안에 들어오지 않는 자식태그는 모두 숨겨라*/
+            position: absolute;
+        }
+        
+        #slide ul {
+            width: 2500px;
+            position: relative;
+            top: 0;
+            left: 0;
+        }
+        
+        #slide ul li {
+            display: block;
+            float: left;
+        }
+        
+        #slide_box li img {
+            width: 500px;
+            height: 250px;
+        }
+        
+        #left_bt {
+            width: 100px;
+            height: 100px;
+            position: absolute;
+            top: 130px;
+            left: 90px;
+            display: none;
+            cursor: pointer;
+        }
+        
+        #right_bt {
+            width: 100px;
+            height: 100px;
+            position: absolute;
+            top: 130px;
+            left: 690px;
+            cursor: pointer;
+        }
+    </style>
+
+</head>
+
+<body>
+    <section>
+        <nav id="box"> </nav>
+        <img id="left_bt" src="./assets/clock.png" alt="">
+        <article id="slide">
+            <ul id="slide_box">
+                <li><img src="/" alt=""></li>
+                <li><img src="./assets/room1.jpg" alt=""></li>
+                <li><img src="./assets/room2.jpg" alt=""></li>
+                <li><img src="./assets/room3.jpg" alt=""></li>
+                <li><img src="./assets/room4.jpg" alt=""></li>
+            </ul>
+        </article>
+        <img id="right_bt" src="./assets/clock.png" alt="">
+    </section>
+
+
+    <script type="text/javascript">
+        var slide = document.getElementById('slide_box');
+        var slide_bt_L = document.getElementById('left_bt');
+        var slide_bt_R = document.getElementById('right_bt');
+        var s_itv;
+        var s_count = 0;
+        var s_posX = 0;
+
+        slide_bt_R.addEventListener('click', function() {
+            if (s_count < 4) {
+                clearInterval(s_itv);
+                s_count++;
+                S_ani_R();
+            }
+            if (s_count == 4) {
+                slide_bt_R.style.display = "none";
+            } else {
+                slide_bt_L.style.display = "block";
+            }
+        });
+
+        function S_ani_R() {
+            s_itv = setInterval(frame, 1);
+
+            function frame() {
+                if (s_posX == s_count * -500) {
+                    clearInterval(s_itv);
+                } else {
+                    s_posX -= 5;
+                    slide.style.left = s_posX + "px";
+                }
+            }
+        }
+
+
+        slide_bt_L.addEventListener('click', function() {
+            if (s_count > 0) {
+                clearInterval(s_itv);
+                s_count--;
+                S_ani_L();
+            }
+            if (s_count == 0) {
+                slide_bt_L.style.display = "none";
+            } else {
+                slide_bt_R.style.display = "block";
+            }
+        });
+
+        function S_ani_L() {
+            s_itv = setInterval(frame, 1);
+
+            function frame() {
+                if (s_posX == s_count * -500) {
+                    clearInterval(s_itv);
+                } else {
+                    s_posX += 5;
+                    slide.style.left = s_posX + "px";
+                }
+            }
+        }
+    </script>
+
+</body>
+
+</html>

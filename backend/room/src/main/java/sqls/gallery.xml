@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- bit.com.a.dao.BbsDao -->
+<mapper namespace="bit.com.a.gallery.GalleryDao">
+
+  <insert id="upload" parameterType="bit.com.a.gallery.GalleryDto" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO gallery(title, file_path) VALUES(#{title}, #{filePath})
+  </insert>
+
+  <select id="getImageList" resultType="bit.com.a.gallery.GalleryDto">
+    SELECT file_path, title from gallery
+  </select>
+
+  <!-- <select id="updateImage" parameterType="bit.com.a.gallery.GalleryDto">
+    Update gallery set where 
+  </select> -->
+
+</mapper>

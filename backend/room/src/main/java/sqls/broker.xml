@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- bit.com.a.dao.BbsDao -->
+<mapper namespace="bit.com.a.broker.BrokerDao">
+
+  <update id="updateWriteCount" parameterType="bit.com.a.broker.BrokerDto">
+  UPDATE BROKER SET write_count = write_count - 1 WHERE id = #{id}
+</update>
+
+  <!-- now() = SYSOUT -->
+  <insert id="register" parameterType="bit.com.a.broker.BrokerDto" useGeneratedKeys="true" keyProperty="id">
+INSERT INTO BROKER(broker_id, broker_password, name, email, age, phone_number, address,
+ auth, registered_at, registered_by)
+ VALUES(#{brokerId},#{brokerPassword}, #{name}, #{email}, #{age}, #{phoneNumber}, #{address}, 4, NOW(), 'ADMIN') 
+</insert>
+
+  <!-- 파일업로드를 추가한 회원가입을 구현해야 한다. -->
+  <select id="getMemberList" resultType="bit.com.a.broker.BrokerDto">
+	select * from BROKER
+  </select>
+
+  <!-- 세션에 담기 위한 용도 -->
+  <select id="login" parameterType="bit.com.a.broker.BrokerDto" resultType="bit.com.a.broker.BrokerDto">
+    SELECT *
+    FROM BROKER
+    WHERE broker_id = #{brokerId} AND broker_password = #{brokerPassword}
+</select>
+
+
+  <select id="idCheck" parameterType="bit.com.a.broker.BrokerDto" resultType="java.lang.Integer">
+      select COUNT(*) 
+      from BROKER
+      where broker_id = #{brokerId}
+  </select>
+
+
+  <!-- 추후 비밀번호검색 -->
+  <!-- <select id="getInformation" parameterType="bit.com.a.broker.BrokerDto" resultType="bit.com.a.broker.BrokerDto">
+  SELECT * 
+  FROM BROKER 
+  WHERE id = #{id}
+
+</select> -->
+
+  <update id="updateProfile" parameterType="bit.com.a.broker.BrokerDto">
+  update BROKER set profile_image = #{profileImage} where broker_id = #{brokerId}
+</update>
+
+  <update id="updateUser" parameterType="bit.com.a.broker.BrokerDto">
+  update BROKER set name = #{name}, broker_id = #{brokerId}, phone_number = #{phoneNumber}
+  where id = #{id}
+  </update>
+
+
+  <!-- 리뷰및 올린 게시글 리스트들 담아오기 -->
+  <resultMap id="brokerMap" type="bit.com.a.broker.BrokerDto">
+    <result column="id" property="id" />
+    <result column="broker_id" property="brokerId" />
+    <result column="broker_password" property="brokerPassword" />
+    <result column="name" property="name" />
+    <result column="email" property="email" />
+    <result column="age" property="age" />
+    <!-- <result column="start" property="start" /> -->
+    <result column="phone_number" property="phoneNumber" />
+    <result column="certification" property="certification" />
+    <result column="profile_image" property="profileImage" />
+    <result column="write_count" property="writeCount" />
+    <result column="registered_at" property="registeredAt" />
+    <result column="registered_by" property="registeredBy" />
+    <!-- 프로필 정보 받아오기 -->
+    <collection property="roomList" column="id" javaType="java.util.ArrayList" select="getRoomList"></collection>
+
+    <collection property="reviewList" column="id" javaType="java.util.ArrayList" select="getReviewList"></collection>
+  </resultMap>
+
+
+  <resultMap id="RoomDtoMap" type="bit.com.a.room.RoomDto">
+    <result column="id" property="id" />
+    <result column="title" property="title" />
+    <result column="content" property="content" />
+    <result column="address_detail" property="addressDetail" />
+    <result column="address_detail_zibun" property="addressDetailZibun" />
+    <result column="room_type" property="roomType" />
+    <result column="room_count" property="roomCount" />
+    <result column="deposit" property="deposit" />
+    <result column="lease" property="lease" />
+    <result column="supply_space" property="supplySpace" />
+    <result column="room_space" property="roomSpace" />
+    <result column="move_day" property="moveDay" />
+    <result column="payment_type" property="paymentType" />
+    <result column="floor" property="floor" />
+    <result column="month_rent" property="monthRent" />
+    <result column="readcount" property="readcount" />
+    <result column="wishcount" property="wishcount" />
+    <result column="del" property="del" />
+    <result column="DONG_id" property="DONGId" />
+    <result column="BROKER_id" property="BROKERId" />
+    <result column="created_at" property="createdAt" />
+    <result column="created_by" property="createdBy" />
+    <result column="updated_at" property="updatedAt" />
+    <result column="updated_by" property="updatedBy" />
+    <result column="deleted_at" property="deletedAt" />
+    <result column="deleted_by" property="deletedBy" />
+
+    <!-- <collection property="roomOptionDto" resultMap="RoomOptionDto" /> -->
+    <!-- 1대1 매핑시에는 association -->
+    <association property="roomOptionDto" column="id" select="getRoomOption"></association>
+    <!-- list등 다수를 가져올때는 collection -->
+    <collection property="roomPictureDtoList" column="id" javaType="java.util.ArrayList" ofType="bit.com.a.room.RoomPictureDto" select="getRoomPicture"></collection>
+    <!-- 위시리스트 가져오기 -->
+    <collection property="roomWishList" column="id" javaType="java.util.ArrayList" select="getWishList"></collection>
+  </resultMap>
+  <select id="getRoomOption" resultType="bit.com.a.room.RoomOptionDto">
+		select * from ROOM_OPTION where ROOM_id = #{id}
+  </select>
+
+  <!-- 위시리스트 -->
+  <select id="getWishList" resultType="bit.com.a.wishlist.WishListDto">
+    SELECT * FROM WISH_LIST WHERE ROOM_id = #{id}
+  </select>
+  <!-- <resultMap id="RoomPictureDto" type="bit.com.a.room.RoomPictureDto">
+    <result column="file_name" property="fileName" />
+    <result column="ROOM_id" property="roomId" />
+  </resultMap> -->
+  <select id="getRoomPicture" resultType="bit.com.a.room.RoomPictureDto">
+		select * from ROOM_PICTURE where ROOM_id = #{id}
+	</select>
+  <!-- 브로커 정보및 방의 리스트 가져오기 -->
+  <select id="getRoomList" resultMap="RoomDtoMap">
+    select * from ROOM where BROKER_id = #{id} and del = 0 order by created_at desc
+  </select>
+
+
+  <select id="getInformation" parameterType="bit.com.a.broker.BrokerDto" resultMap="brokerMap">
+    select * from BROKER where id = #{id} 
+  </select>
+  <!--  -->
+  <resultMap id="reviewMap" type="bit.com.a.review.ReviewDto">
+    <result column="id" property="id" />
+    <result column="content" property="content" />
+    <result column="grade" property="grade" />
+    <result column="del" property="del" />
+    <result column="ref" property="ref" />
+    <result column="status" property="status" />
+    <result column="step" property="step" />
+    <result column="depth" property="depth" />
+    <result column="user_id" property="userId" />
+    <result column="broker_id" property="brokerId" />
+    <result column="created_at" property="createdAt" />
+    <result column="broker_review_id" property="brokerReviewId" />
+    <association property="bestCount" column="broker_review_id" select="bestCount"></association>
+    <association property="goodCount" column="broker_review_id" select="goodCount"></association>
+    <association property="sosoCount" column="broker_review_id" select="sosoCount"></association>
+    <association property="nopeCount" column="broker_review_id" select="nopeCount"></association>
+    <association property="userInformation" column="user_id" select="getUserInformation"></association>
+  </resultMap>
+
+  <select id="bestCount" resultType="java.lang.Integer">
+    select IFNULL(COUNT(status),0) AS bestCount from REVIEW where status = 'best' and  broker_review_id = #{brokerReviewId}
+  </select>
+  <select id="goodCount" resultType="java.lang.Integer">
+    select IFNULL(COUNT(status),0) AS goodCount from REVIEW where status = 'good' and  broker_review_id = #{brokerReviewId}
+  </select>
+  <select id="sosoCount" resultType="java.lang.Integer">
+    select IFNULL(COUNT(status),0) AS sosoCount from REVIEW where status = 'soso'  and broker_review_id = #{brokerReviewId}
+  </select>
+  <select id="nopeCount" resultType="java.lang.Integer"> 
+    select IFNULL(COUNT(status),0) AS nopeCount from REVIEW where status = 'nope' and  broker_review_id = #{brokerReviewId}
+  </select>
+
+  <select id="getUserInformation" resultType="bit.com.a.user.UserDto">
+    select * from USER where user_id = #{userId}
+  </select>
+
+  <select id="getReviewList" resultMap="reviewMap">
+    select * from REVIEW where broker_review_id = #{id} ORDER BY ref DESC, step ASC
+  </select>
+
+
+</mapper>

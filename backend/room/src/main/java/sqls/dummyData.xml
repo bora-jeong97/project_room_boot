@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- bit.com.a.dao.BbsDao -->
+<mapper namespace="bit.com.a.dummyData.DummyDataDao">
+  <!-- Insert Si Gu, Dong-->
+  <insert id="insertSi" parameterType="bit.com.a.dummyData.SiDto" useGeneratedKeys="true" keyProperty="id">
+  INSERT INTO SI(name, count, latitude, longitude)
+  VALUES(#{name}, 0, #{latitude}, #{longitude}) 
+  </insert>
+
+  <insert id="insertGu" parameterType="bit.com.a.dummyData.GuDto" useGeneratedKeys="true" keyProperty="id">
+  INSERT INTO GU(name, count, SI_id, latitude, longitude)
+  VALUES(#{name}, 0, #{siId}, #{latitude}, #{longitude})
+  </insert>
+
+  <insert id="insertDong" parameterType="bit.com.a.dummyData.DongDto" useGeneratedKeys="true" keyProperty="id">
+  INSERT INTO DONG(name, count, GU_id, latitude, longitude)
+  VALUES(#{name}, 0, #{guId}, #{latitude}, #{longitude}) 
+  </insert>
+
+  <select id="checkSi" parameterType="bit.com.a.dummyData.SiDto" resultType="java.lang.Integer">
+  select COUNT(*) from SI where name = #{name}
+  </select>
+
+  <select id="checkGu" parameterType="bit.com.a.dummyData.GuDto" resultType="java.lang.Integer">
+  select COUNT(*) from GU where name = #{name} AND SI_id = #{siId}
+  </select>
+
+  <select id="checkDong" parameterType="bit.com.a.dummyData.DongDto" resultType="java.lang.Integer">
+  select COUNT(*) from DONG where name = #{name} AND GU_id = #{guId}
+  </select>
+
+  <select id="getSiId" parameterType="bit.com.a.dummyData.SiDto" resultType="java.lang.Integer">
+  select id from SI where name = #{name}
+  </select>
+
+  <select id="getGuId" parameterType="bit.com.a.dummyData.GuDto" resultType="java.lang.Integer">
+  select id from GU where name = #{name} AND SI_id = #{siId}
+  </select>
+
+  <select id="getDongId" parameterType="bit.com.a.dummyData.DongDto" resultType="java.lang.Integer">
+  select id from DONG where name = #{name} AND GU_id = #{guId}
+  </select>
+
+  <select id="getSi" parameterType="java.lang.Integer" resultType="bit.com.a.dummyData.SiDto">
+  select * from SI where id = #{id}
+  </select>
+
+  <select id="getGu" parameterType="java.lang.Integer" resultType="bit.com.a.dummyData.GuDto">
+  select * from GU where id = #{id}
+  </select>
+
+  <select id="getDong" parameterType="java.lang.Integer" resultType="bit.com.a.dummyData.DongDto">
+  select * from DONG where id = #{id}
+  </select>
+</mapper>

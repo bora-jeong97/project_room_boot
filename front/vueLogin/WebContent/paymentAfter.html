@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- vue -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+    
+    <title>PaymentAfter</title>
+</head>
+<body>
+
+<h2>Payment After Page</h2>
+    <div id="app">
+
+        payment: {{payment}}
+        brokerId: {{brokerId}}
+        id: {{id}}
+
+    </div>
+
+    <script>
+        let login = JSON.parse(sessionStorage.getItem("login"));
+
+   
+        //라우터 payment를 받아준다.
+        let router = new VueRouter({
+            mode: 'history',
+            routes: []
+        });
+
+        
+      let v =   new Vue({
+            router,
+            el: '#app',
+            data: {
+                brokerId: login.id,
+                payment: '',
+                id: ''
+            },
+            mounted: function(){
+
+              let parameters = this.$route.query //파라미터 값을 받아온다.
+              this.payment = parameters.payment; //받아온 파라미터
+              this.id = parameters.id;
+
+              axios.get("http://localhost:8081/api/payment/payments",{
+                  params:{
+                    payment: parameters.payment,
+                    brokerId: this.brokerId,
+                    id: parameters.id
+                  }
+              }).then(res=>{
+                  alert("payments백단 통신성공");
+
+                  if(res.data > 0){
+                    alert("완료");
+                 }else {
+                    alert("백단오류")
+                 }
+              })
+            }
+        })
+
+  
+    </script>
+
+</body>
+</html>

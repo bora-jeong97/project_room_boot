@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>layout07</title>
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+    <link rel="stylesheet" href="./css/layout.css">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- import JavaScript -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <style>
+
+    </style>
+</head>
+
+<body>
+
+    <div id="app">
+        <!-- <div id="header"></div> -->
+        <div id="header-top">
+            <div class="header-container">
+                <div id="header-top">
+                    <div class="header-container">
+                        <div class="header-left">
+                            <div>
+                                <button>구해방</button>
+                            </div>
+                            <div>
+                                <button>프로중개사이트</button>
+                            </div>
+                        </div>
+                        <div>
+                            <button>방주인사이트</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="header-menu">
+                        <div>
+                            <button>방찾기</button>
+                        </div>
+                        <div>
+                            <button>분양</button>
+                        </div>
+                        <div>
+                            <button>관심목록</button>
+                        </div>
+                        <div>
+                            <button>방내놓기</button>
+                        </div>
+                        <div>
+                            <button>알림</button>
+                        </div>
+                    </div>
+                    <div class="header-login">
+                        <div>
+                            <!-- v-if login.id 는 login.id가 존재하면 true 존재하지 않으면 false를 반환한다 -->
+                            <button v-if="login.id">{{login.name}}님 환영합니다</button>
+                            <button v-else @click="moveRegister">회원가입</button>
+                        </div>
+                        <div>
+                            <button v-if="login.id" @click="logout">로그아웃</button>
+                            <button v-else @click="moveLogin">로그인</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- <div id="header-nav">
+                <div class="container">header-nav</div>
+            </div> -->
+
+        <!-- //header -->
+        <div id="banner">
+            <div class="container">banner</div>
+        </div>
+        <!-- banner -->
+        <div id="contents">
+            <div id="content1">
+                <div class="container">content1</div>
+            </div>
+            <div id="content2">
+                <div class="container">content2</div>
+            </div>
+            <div id="content3">
+                <div class="container">content3</div>
+            </div>
+        </div>
+        <!-- //contents -->
+        <div id="footer">
+            <div id="footer-nav">
+                <div class="container">footer-nav</div>
+            </div>
+            <div id="footer-info">
+                <div class="container">footer-info</div>
+            </div>
+        </div>
+        <!-- //footer -->
+    </div>
+    <!-- //app -->
+    <script>
+        const app = new Vue({
+            el: "#app",
+            data() {
+                return {
+                    login: ""
+                }
+            },
+            mounted() {
+                //json 형태로 변환
+                // session에는 무조건 스트링식으로 값이 들어가기 때문에 login시 JSON.stringify를 통해서 json을 String 값으로 변해서 넣어주고
+                // 이곳에서 가져올때는 JSON.parse를 통해 json화 시킨다
+                this.login = JSON.parse(sessionStorage.getItem("login"));
+                // 모든값을 배열로 저장
+
+                console.log(this.login);
+            },
+            methods: {
+                moveRegister() {
+                    location.href = "register.html"
+                },
+                moveLogin() {
+                    location.href = "login.html";
+                },
+                logout() {
+                    //로그아웃시 세션제거하기
+                    sessionStorage.removeItem("login");
+                    location.href = "layout.html";
+                }
+            }
+
+        });
+    </script>
+
+</body>
+
+</html>

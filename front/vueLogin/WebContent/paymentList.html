@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html >
+<head>
+    <meta charset="UTF-8">
+    <title>paymentListView</title>
+    <!-- vue -->
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+
+
+</head>
+<body>
+    <h1>paymentList</h1>
+
+    <div id="app">
+        Payment 테이블 적용 id는 : {{id}}brokerId는 : {{brokerId}} payment: {{payment}}
+            <table>
+                <colgroup>
+                    <col width="300px">
+                </colgroup>
+                <tr style="background-color: rgba(70, 224, 224, 0.849)">
+                    <th>{{name}}님</th>  <!--name 닉네임 작동 잘 됨 -->
+                </tr>
+                <tr style="background-color: rgba(159, 184, 184, 0.966)">
+                    <td  Style="text-align:center ;">
+                        <select v-model="payment">  
+                            <option value="" disabled="disabled" selected="selected" >선택해주세요</option>            
+                            <option value="100000">10회 / 100,000</option>
+                            <option value="200000">22회 / 200,000</option>
+                            <option value="300000">35회 / 300,000</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr style="background-color: rgba(159, 184, 184, 0.966)">
+                    <td  Style="text-align:center ;"><button @click="paymentApi(payment, id)">충전하기</button></td>
+                </tr>
+            </table>
+    </div>
+    <script type="text/javascript">
+   // 세션에 저장된 값 JSON으로 받아오기
+   var login = JSON.parse(sessionStorage.getItem("login"));
+
+
+   //alert(login.id);           // 3
+   //alert(login.name);    // broker3 잘 나옴
+    new Vue({
+            el: '#app',
+            data: {
+                name: login.name, //broker의 id값       
+                id: login.id,                                                                                  
+                brokerId: login.id,  //int
+                payment: ''
+
+            },
+            methods:{
+                paymentApi(payment, id){
+                    
+                    location.href = "paymentApi.html?payment="+payment+"&id="+ id; //파라미터 값가지고 가자 payment
+                }
+
+            }
+
+   })
+
+   //라우터로 실행 결과값 파라미터 yes no 와 payment값을 받아줄것. 
+    </script>
+    
+</body>
+</html>
